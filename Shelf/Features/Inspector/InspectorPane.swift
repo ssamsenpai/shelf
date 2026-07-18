@@ -136,13 +136,9 @@ struct InspectorPane: View {
             .help("Reveal in Finder")
             .accessibilityLabel("Reveal in Finder")
         }
-        .buttonStyle(.bordered)
-        .controlSize(.large)
-        .tint(Color.secondary)
+        .buttonStyle(.shelfSecondary)
     }
 
-    /// A fixed content height on every label is what keeps the three the same size,
-    /// since the icon only button has no text to set its intrinsic height.
     private func actionLabel(_ title: String?, symbol: String) -> some View {
         HStack(spacing: Spacing.xs) {
             Image(systemName: symbol)
@@ -150,8 +146,6 @@ struct InspectorPane: View {
                 Text(title)
             }
         }
-        .font(.callout)
-        .frame(height: 18)
         .frame(maxWidth: title == nil ? nil : .infinity)
     }
 

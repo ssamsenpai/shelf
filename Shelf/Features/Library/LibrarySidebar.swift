@@ -50,15 +50,6 @@ struct LibrarySidebar: View {
                             .tag(LibrarySelection.category(category.id))
                     }
                 }
-
-                Button {
-                    actions.createCategory()
-                } label: {
-                    Label("New Category", systemImage: "plus")
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .listRowSeparator(.hidden)
             }
         }
         .listStyle(.sidebar)
