@@ -30,6 +30,9 @@ enum ViewMode: String, Hashable, CaseIterable, Sendable {
         case .list: "List"
         }
     }
+
+    /// What the switcher offers. Canvas is built but held back for now.
+    static let selectable: [ViewMode] = [.grid, .list]
 }
 
 enum SortField: String, CaseIterable, Identifiable {
@@ -105,7 +108,9 @@ final class AppState {
     }
 
     init() {
-        viewMode = ViewMode(rawValue: defaults.string(forKey: Keys.viewMode) ?? "") ?? .grid
+        let storedMode = ViewMode(rawValue: defaults.string(forKey: Keys.viewMode) ?? "") ?? .grid
+        // A stored canvas mode would strand the user on a view they cannot switch back to.
+        viewMode = ViewMode.selectable.contains(storedMode) ? storedMode : .grid
         sortField = SortField(rawValue: defaults.string(forKey: Keys.sortField) ?? "") ?? .dateAdded
         sortAscending = defaults.object(forKey: Keys.sortAscending) as? Bool ?? false
         inspectorPresented = defaults.bool(forKey: Keys.inspector)

@@ -28,6 +28,7 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
     private let options: [Option]
 
     @Namespace private var indicator
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(selection: Binding<Value>, options: [Option]) {
         self._selection = selection
@@ -51,7 +52,11 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
         let isSelected = option.value == selection
 
         return Button {
-            selection = option.value
+            // Animating the change itself, so the chip glides even when the tap
+            // comes from outside this view.
+            withAnimation(reduceMotion ? Motion.crossFade : Motion.smooth) {
+                selection = option.value
+            }
         } label: {
             Text(option.title)
                 .font(.callout.weight(isSelected ? .semibold : .regular))

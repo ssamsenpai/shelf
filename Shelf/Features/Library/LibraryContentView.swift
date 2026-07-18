@@ -101,7 +101,7 @@ struct LibraryContentView: View {
         .overlay(alignment: .bottom) {
             GlassSegmentedControl(
                 selection: $app.viewMode,
-                options: ViewMode.allCases.map {
+                options: ViewMode.selectable.map {
                     .init(value: $0, symbol: $0.symbol, title: $0.title)
                 }
             )
