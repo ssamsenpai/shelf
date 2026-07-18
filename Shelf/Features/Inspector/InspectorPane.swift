@@ -42,7 +42,7 @@ struct InspectorPane: View {
                     Button(category.name) { actions.move(selected, to: category) }
                 }
                 Divider()
-                Button("Inbox") { actions.move(selected, to: nil) }
+                Button("No Category") { actions.move(selected, to: nil) }
             }
             .menuStyle(.borderlessButton)
             .frame(width: 180)
@@ -85,12 +85,12 @@ struct InspectorPane: View {
                 }
 
                 section("Category") {
-                    Menu(asset.category?.name ?? "Inbox") {
+                    Menu(asset.category?.name ?? "No Category") {
                         ForEach(categories) { category in
                             Button(category.name) { actions.move([asset], to: category) }
                         }
                         Divider()
-                        Button("Inbox") { actions.move([asset], to: nil) }
+                        Button("No Category") { actions.move([asset], to: nil) }
                     }
                     .menuStyle(.borderlessButton)
                 }

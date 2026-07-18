@@ -25,8 +25,6 @@ struct LibraryContentView: View {
         switch app.selection {
         case .allItems, .recent:
             allAssets
-        case .inbox:
-            allAssets.filter { $0.category == nil }
         case .category(let id):
             allAssets.filter { $0.category?.id == id }
         }
@@ -145,12 +143,6 @@ struct LibraryContentView: View {
                 symbol: "clock",
                 title: "Nothing recent",
                 message: "Items you add will show up here, newest first."
-            )
-        case .inbox:
-            EmptyState(
-                symbol: "tray",
-                title: "Inbox is clear",
-                message: "Unfiled items land here so you can sort them into categories."
             )
         case .category:
             EmptyState(

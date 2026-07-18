@@ -24,7 +24,7 @@ struct AssetContextMenu: View {
             if !categories.isEmpty {
                 Divider()
             }
-            Button("Inbox") { actions.move([asset], to: nil) }
+            Button("No Category") { actions.move([asset], to: nil) }
         }
 
         Button("Get Info") {

@@ -40,7 +40,7 @@ struct AddLinkSheet: View {
 
                 field("Category") {
                     Picker("", selection: $categoryID) {
-                        Text("Inbox").tag(UUID?.none)
+                        Text("No Category").tag(UUID?.none)
                         ForEach(categories) { category in
                             Text(category.name).tag(UUID?.some(category.id))
                         }

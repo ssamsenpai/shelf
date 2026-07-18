@@ -17,13 +17,9 @@ struct LibrarySidebar: View {
 
     private var actions: LibraryActions { LibraryActions(context: context, app: app) }
 
-    private var inboxCount: Int {
-        assets.count { $0.category == nil }
-    }
-
     /// Flat order used for keyboard navigation.
     private var destinations: [LibrarySelection] {
-        [.allItems, .recent, .inbox] + categories.map { .category($0.id) }
+        [.allItems, .recent] + categories.map { .category($0.id) }
     }
 
     var body: some View {
@@ -31,7 +27,7 @@ struct LibrarySidebar: View {
             Section {
                 SidebarRow(
                     title: "All Items",
-                    symbol: "square.stack",
+                    symbol: "square.grid.2x2",
                     count: assets.count,
                     isSelected: app.selection == .allItems
                 ) { app.selection = .allItems }
@@ -42,13 +38,6 @@ struct LibrarySidebar: View {
                     count: nil,
                     isSelected: app.selection == .recent
                 ) { app.selection = .recent }
-
-                SidebarRow(
-                    title: "Inbox",
-                    symbol: "tray",
-                    count: inboxCount,
-                    isSelected: app.selection == .inbox
-                ) { app.selection = .inbox }
             }
 
             Section {
@@ -68,9 +57,6 @@ struct LibrarySidebar: View {
         }
         .listStyle(.sidebar)
         .contentMargins(.top, Spacing.xs, for: .scrollContent)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            SidebarWindowControls()
-        }
         .focusable()
         .focusEffectDisabled()
         .onKeyPress(.upArrow) { moveSelection(by: -1) }
@@ -95,40 +81,6 @@ struct LibrarySidebar: View {
 
         app.selection = all[next]
         return .handled
-    }
-}
-
-/// Glass cluster at the top of the sidebar: a container behind the window's traffic
-/// lights, and the show and hide control beside it.
-private struct SidebarWindowControls: View {
-    @Environment(AppState.self) private var app
-
-    var body: some View {
-        HStack(spacing: Spacing.s) {
-            // Reserves and frames the space the system draws the traffic lights in.
-            Capsule()
-                .fill(.clear)
-                .glassEffect(.regular, in: .capsule)
-                .frame(width: 76, height: 28)
-                .allowsHitTesting(false)
-
-            Button {
-                app.columnVisibility = app.columnVisibility == .all ? .detailOnly : .all
-            } label: {
-                Image(systemName: "sidebar.leading")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .frame(width: 32, height: 28)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: Radius.small))
-            .help("Hide or show the sidebar")
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, Spacing.m)
-        .padding(.bottom, Spacing.s)
     }
 }
 
@@ -194,13 +146,13 @@ struct SidebarRow: View {
                     CountPill(count: count)
                 }
             }
-            .padding(.horizontal, Spacing.m)
+            .padding(.horizontal, Spacing.s)
             .frame(height: 34)
             .background(SidebarRowBackground(isSelected: isSelected, isHovering: hovering))
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.s, bottom: 1, trailing: Spacing.s))
+        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.xs, bottom: 1, trailing: Spacing.s))
         .listRowSeparator(.hidden)
         .onHover { hovering = $0 }
         .shelfAnimation(Motion.snappy, value: hovering)
@@ -244,7 +196,7 @@ private struct CategorySidebarRow: View {
             app.selection = .category(category.id)
         } label: {
             HStack(spacing: Spacing.m) {
-                Image(systemName: "tray.2")
+                Image(systemName: "square.stack")
                     .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(.primary)
                     .frame(width: 20, alignment: .center)
@@ -269,7 +221,7 @@ private struct CategorySidebarRow: View {
                     CountPill(count: category.itemCount)
                 }
             }
-            .padding(.horizontal, Spacing.m)
+            .padding(.horizontal, Spacing.s)
             .frame(height: 34)
             .background(
                 SidebarRowBackground(
@@ -281,7 +233,7 @@ private struct CategorySidebarRow: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.s, bottom: 1, trailing: Spacing.s))
+        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.xs, bottom: 1, trailing: Spacing.s))
         .listRowSeparator(.hidden)
         .onHover { hovering = $0 }
         .dropDestination(for: String.self) { items, _ in

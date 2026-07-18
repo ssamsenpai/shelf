@@ -7,7 +7,6 @@ import SwiftUI
 enum LibrarySelection: Hashable, Codable {
     case allItems
     case recent
-    case inbox
     case category(UUID)
 }
 
@@ -121,7 +120,6 @@ final class AppState {
         switch selection {
         case .allItems: "All Items"
         case .recent: "Recent"
-        case .inbox: "Inbox"
         case .category: category?.name ?? "Category"
         }
     }
