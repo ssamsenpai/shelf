@@ -9,15 +9,25 @@ public struct AssetTile: View {
     private let thumbnail: Image?
     private let isSelected: Bool
     private let onOpen: (() -> Void)?
+    private let aspectRatio: CGFloat
+    private let fillsTile: Bool
 
     @State private var hovering = false
 
+    /// - Parameters:
+    ///   - aspectRatio: Shape of the tile. 1 keeps the uniform square used by the
+    ///     grid. Pass the asset's own ratio for a layout that varies with content.
+    ///   - fillsTile: When true the preview covers the tile edge to edge rather than
+    ///     sitting inset. Use it when `aspectRatio` already matches the preview, so
+    ///     nothing is cropped.
     public init(
         name: String,
         kindTitle: String,
         symbol: String,
         thumbnail: Image?,
         isSelected: Bool = false,
+        aspectRatio: CGFloat = 1,
+        fillsTile: Bool = false,
         onOpen: (() -> Void)? = nil
     ) {
         self.name = name
@@ -25,6 +35,8 @@ public struct AssetTile: View {
         self.symbol = symbol
         self.thumbnail = thumbnail
         self.isSelected = isSelected
+        self.aspectRatio = aspectRatio
+        self.fillsTile = fillsTile
         self.onOpen = onOpen
     }
 
@@ -37,14 +49,14 @@ public struct AssetTile: View {
                 if let thumbnail {
                     thumbnail
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(Spacing.xs)
+                        .aspectRatio(contentMode: fillsTile ? .fill : .fit)
+                        .padding(fillsTile ? 0 : Spacing.xs)
                 } else {
                     // Type badge placeholder. Never a broken image glyph.
                     TypeBadge(symbol: symbol, kindTitle: kindTitle)
                 }
             }
-            .aspectRatio(1, contentMode: .fit)
+            .aspectRatio(aspectRatio, contentMode: .fit)
             .clipShape(RoundedRectangle.shelf(Radius.medium))
             .overlay(alignment: .topTrailing) {
                 if hovering, let onOpen {

@@ -21,6 +21,15 @@ struct AssetCanvasView: View {
         )
     }
 
+    /// Row height is fixed and width follows the asset, so a wide image reads as a
+    /// wide tile instead of a letterboxed square. Clamped so a panorama or a very
+    /// tall export cannot dominate the row.
+    private func aspect(for asset: Asset) -> CGFloat {
+        guard asset.pixelWidth > 0, asset.pixelHeight > 0 else { return 1 }
+        let ratio = CGFloat(asset.pixelWidth) / CGFloat(asset.pixelHeight)
+        return min(max(ratio, 0.55), 2.4)
+    }
+
     /// Fewer rows for small collections, so a handful of items does not stretch
     /// into a thin ribbon.
     private var rowCount: Int {
@@ -42,10 +51,12 @@ struct AssetCanvasView: View {
                             symbol: asset.kind.symbol,
                             thumbnail: image,
                             isSelected: app.selectedAssetIDs.contains(asset.id),
+                            aspectRatio: aspect(for: asset),
+                            fillsTile: true,
                             onOpen: { actions.revealInFinder(asset) }
                         )
                     }
-                    .frame(width: tileSize)
+                    .frame(width: tileSize * aspect(for: asset))
                     .contentShape(.rect)
                     .onTapGesture { app.selectedAssetIDs = [asset.id] }
                     .draggable(asset.id.uuidString)
