@@ -39,7 +39,47 @@ public struct ShelfSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// The accent counterpart to `ShelfSecondaryButtonStyle`. Same height, padding, and
+/// radius, so a primary and a secondary button sitting side by side match exactly.
+public struct ShelfPrimaryButtonStyle: ButtonStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        Content(configuration: configuration)
+    }
+
+    private struct Content: View {
+        let configuration: ButtonStyleConfiguration
+        @State private var hovering = false
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, Spacing.m)
+                .frame(height: 30)
+                .background(fill, in: .shelf(Radius.small))
+                .contentShape(RoundedRectangle.shelf(Radius.small))
+                .onHover { hovering = $0 }
+                .shelfAnimation(Motion.snappy, value: hovering)
+        }
+
+        private var fill: Color {
+            guard isEnabled else { return .shelfAccent.opacity(0.4) }
+            if configuration.isPressed { return .shelfAccent.opacity(0.82) }
+            if hovering { return .shelfAccent.opacity(0.92) }
+            return .shelfAccent
+        }
+    }
+}
+
 public extension ButtonStyle where Self == ShelfSecondaryButtonStyle {
     /// Neutral fill, primary label, token radius.
     static var shelfSecondary: ShelfSecondaryButtonStyle { .init() }
+}
+
+public extension ButtonStyle where Self == ShelfPrimaryButtonStyle {
+    /// Accent fill, white label, matching the secondary style's geometry.
+    static var shelfPrimary: ShelfPrimaryButtonStyle { .init() }
 }

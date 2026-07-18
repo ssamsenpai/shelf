@@ -56,8 +56,7 @@ public struct EmptyState: View {
             HStack(spacing: Spacing.s) {
                 if let actionTitle, let action {
                     Button(actionTitle, action: action)
-                        .buttonStyle(.glassProminent)
-                        .controlSize(.large)
+                        .buttonStyle(.shelfPrimary)
                 }
 
                 if let secondaryActionTitle, let secondaryAction {

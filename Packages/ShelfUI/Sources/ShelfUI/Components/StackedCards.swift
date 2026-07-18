@@ -105,18 +105,18 @@ public struct StackedCards: View {
     private func card(preview: Image??, side: CGFloat) -> some View {
         if let preview {
             RoundedRectangle.shelf(Radius.medium)
-                // A blank white card reads as broken. Items without a preview get a
-                // quiet fill and a glyph instead.
-                .fill(preview == nil ? Color.shelfWell : Color.shelfContent)
+                .fill(Color.shelfContent)
                 .overlay {
                     if let image = preview {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     } else {
+                        // Solid enough to read as deliberate rather than as a
+                        // card that failed to load.
                         Image(systemName: count == 0 ? "plus" : "square.stack")
-                            .font(.system(size: 16, weight: .light))
-                            .foregroundStyle(.tertiary)
+                            .font(.system(size: 22, weight: .regular))
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .clipShape(RoundedRectangle.shelf(Radius.medium))

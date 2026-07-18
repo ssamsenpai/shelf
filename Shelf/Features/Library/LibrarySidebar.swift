@@ -57,7 +57,7 @@ struct LibrarySidebar: View {
         }
         .listStyle(.sidebar)
         .toolbar(removing: .sidebarToggle)
-        .contentMargins(.top, Spacing.xs, for: .scrollContent)
+        .contentMargins(.top, Spacing.l, for: .scrollContent)
         .focusable()
         .focusEffectDisabled()
         .onKeyPress(.upArrow) { moveSelection(by: -1) }
