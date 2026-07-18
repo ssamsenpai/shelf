@@ -15,12 +15,12 @@ struct AssetGridView: View {
     var body: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: Spacing.l) {
             ForEach(assets) { asset in
-                ThumbnailProvider(asset: asset) { image in
+                ThumbnailProvider(asset: asset) { loaded in
                     AssetTile(
                         name: asset.displayName,
                         kindTitle: asset.kind.title,
                         symbol: asset.kind.symbol,
-                        thumbnail: image,
+                        thumbnail: loaded?.image,
                         isSelected: app.selectedAssetIDs.contains(asset.id),
                         onOpen: { actions.revealInFinder(asset) }
                     )

@@ -11,6 +11,9 @@ struct RootView: View {
     @Query private var assets: [Asset]
     @Query(sort: \ShelfCategory.createdAt) private var categories: [ShelfCategory]
 
+    /// The sidebar starts open rather than collapsed.
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+
     private var actions: LibraryActions { LibraryActions(context: context, app: app) }
 
     private var selectedAssets: [Asset] {
@@ -26,7 +29,7 @@ struct RootView: View {
     var body: some View {
         @Bindable var app = app
 
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             LibrarySidebar()
                 .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
@@ -74,6 +77,10 @@ struct RootView: View {
         }
         .task {
             actions.seedDefaultCategoriesIfNeeded()
+            selectFirstAssetIfNeeded()
+        }
+        .onChange(of: assets.count) { _, _ in
+            selectFirstAssetIfNeeded()
         }
         .fileImporter(
             isPresented: $app.isPresentingImport,
@@ -103,6 +110,16 @@ struct RootView: View {
         selectedAssets.count == 1
             ? "Remove this item from Shelf?"
             : "Remove \(selectedAssets.count) items from Shelf?"
+    }
+
+    /// Opens on something rather than an empty inspector. Only fills a genuinely
+    /// empty selection, so it never fights the user.
+    private func selectFirstAssetIfNeeded() {
+        guard app.selectedAssetIDs.isEmpty,
+              let first = assets.sorted(by: { $0.addedAt > $1.addedAt }).first
+        else { return }
+
+        app.selectedAssetIDs = [first.id]
     }
 
     private func handleImport(_ result: Result<[URL], Error>) {

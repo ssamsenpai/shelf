@@ -68,6 +68,16 @@ enum ImportService {
     }
 
     private static func pixelDimensions(of url: URL) -> (width: Int, height: Int)? {
+        // A PDF has no pixel dimensions, so its page box stands in. Without this a
+        // 16:9 document would be treated as square.
+        if url.pathExtension.lowercased() == "pdf" {
+            if let document = CGPDFDocument(url as CFURL), let page = document.page(at: 1) {
+                let box = page.getBoxRect(.mediaBox)
+                return (Int(box.width), Int(box.height))
+            }
+            return nil
+        }
+
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
         else { return nil }

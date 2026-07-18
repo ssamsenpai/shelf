@@ -54,7 +54,8 @@ struct InspectorPane: View {
     private func detail(for asset: Asset) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.l) {
-                ThumbnailProvider(asset: asset) { image in
+                ThumbnailProvider(asset: asset) { loaded in
+                    let image = loaded?.image
                     ZStack {
                         RoundedRectangle.shelf(Radius.medium)
                             .fill(Color.shelfWell)

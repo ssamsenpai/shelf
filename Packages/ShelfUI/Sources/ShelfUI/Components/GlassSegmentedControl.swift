@@ -42,7 +42,9 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
         }
         .padding(Spacing.xs)
         .glassEffect(.regular.interactive(), in: .capsule)
-        .shelfAnimation(Motion.snappy, value: selection)
+        // Smooth rather than snappy, so the chip reads as gliding under the labels
+        // instead of snapping into place.
+        .shelfAnimation(Motion.smooth, value: selection)
     }
 
     private func segment(for option: Option) -> some View {

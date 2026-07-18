@@ -35,7 +35,8 @@ public struct FlowLayout: Layout {
         for row in rows {
             var x = bounds.minX
             for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                var size = subviews[index].sizeThatFits(.unspecified)
+                size.width = min(size.width, bounds.width)
                 subviews[index].place(
                     at: CGPoint(x: x, y: y),
                     proposal: ProposedViewSize(size)
@@ -57,7 +58,11 @@ public struct FlowLayout: Layout {
         var current = Row()
 
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            var size = subviews[index].sizeThatFits(.unspecified)
+            // A single item wider than the container would otherwise overflow
+            // instead of fitting, which shows up as clipping on narrow windows.
+            size.width = min(size.width, availableWidth)
+
             let needed = current.width + size.width + (current.indices.isEmpty ? 0 : spacing)
 
             if needed > availableWidth, !current.indices.isEmpty {

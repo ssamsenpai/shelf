@@ -11,6 +11,7 @@ public struct AssetTile: View {
     private let onOpen: (() -> Void)?
     private let aspectRatio: CGFloat
     private let fillsTile: Bool
+    private let showsName: Bool
 
     @State private var hovering = false
 
@@ -28,8 +29,10 @@ public struct AssetTile: View {
         isSelected: Bool = false,
         aspectRatio: CGFloat = 1,
         fillsTile: Bool = false,
+        showsName: Bool = true,
         onOpen: (() -> Void)? = nil
     ) {
+        self.showsName = showsName
         self.name = name
         self.kindTitle = kindTitle
         self.symbol = symbol
@@ -71,11 +74,13 @@ public struct AssetTile: View {
             .scaleEffect(hovering ? 1.02 : 1)
             .shelfShadow(lifted: hovering)
 
-            Text(name)
-                .font(.caption)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .truncationMode(.middle)
+            if showsName {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
         }
         .padding(Spacing.xs)
         .background(

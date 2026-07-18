@@ -37,22 +37,43 @@ struct AssetThumbnail: View {
     }
 }
 
-/// A small holder that hands the loaded image to a builder, so tiles and rows can
-/// share one loading path while drawing themselves differently.
+/// A loaded thumbnail plus its true pixel size.
+///
+/// The size matters because some kinds, PDFs above all, store no pixel dimensions
+/// of their own. Measuring the rendered preview is the only reliable way to know
+/// the real shape of the content.
+struct LoadedThumbnail {
+    let image: Image
+    let pixelSize: CGSize
+
+    var aspectRatio: CGFloat? {
+        guard pixelSize.width > 0, pixelSize.height > 0 else { return nil }
+        return pixelSize.width / pixelSize.height
+    }
+}
+
+/// A small holder that hands the loaded thumbnail to a builder, so tiles and rows
+/// can share one loading path while drawing themselves differently.
 struct ThumbnailProvider<Content: View>: View {
     let asset: Asset
-    @ViewBuilder let content: (Image?) -> Content
+    @ViewBuilder let content: (LoadedThumbnail?) -> Content
 
-    @State private var image: Image?
+    @State private var loaded: LoadedThumbnail?
 
     var body: some View {
-        content(image)
+        content(loaded)
             .task(id: asset.id) {
                 let bookmark = asset.bookmark
                 guard let data = await ThumbnailCache.thumbnailData(id: asset.id, bookmark: bookmark),
                       let nsImage = NSImage(data: data)
                 else { return }
-                image = Image(nsImage: nsImage)
+
+                // Pixel dimensions, not the point size NSImage reports.
+                let pixels = nsImage.representations.first.map {
+                    CGSize(width: $0.pixelsWide, height: $0.pixelsHigh)
+                } ?? nsImage.size
+
+                loaded = LoadedThumbnail(image: Image(nsImage: nsImage), pixelSize: pixels)
             }
     }
 }
