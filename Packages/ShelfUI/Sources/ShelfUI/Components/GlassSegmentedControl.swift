@@ -2,10 +2,13 @@ import SwiftUI
 
 /// A floating segmented control on real Liquid Glass.
 ///
-/// Each segment carries its own glass effect and shares a `GlassEffectContainer`,
-/// which is what lets neighbours merge and the selection morph between them. Glass
-/// belongs to the functional layer, so this is only ever used for controls that
-/// float above content, never on the content itself.
+/// One glass capsule holds the whole strip, with a solid indicator that slides
+/// between segments. Giving each segment its own glass effect instead would read as
+/// several separate pills rather than one control, and glass sampling glass is the
+/// thing the design rules rule out.
+///
+/// Glass belongs to the functional layer, so this is only used for controls that
+/// float above content, never on content itself.
 public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
     public struct Option: Identifiable {
         public let value: Value
@@ -24,8 +27,7 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
     @Binding private var selection: Value
     private let options: [Option]
 
-    @Namespace private var namespace
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var indicator
 
     public init(selection: Binding<Value>, options: [Option]) {
         self._selection = selection
@@ -33,13 +35,13 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
     }
 
     public var body: some View {
-        GlassEffectContainer(spacing: Spacing.xs) {
-            HStack(spacing: Spacing.xs) {
-                ForEach(options) { option in
-                    segment(for: option)
-                }
+        HStack(spacing: 0) {
+            ForEach(options) { option in
+                segment(for: option)
             }
         }
+        .padding(Spacing.xs)
+        .glassEffect(.regular.interactive(), in: .capsule)
         .shelfAnimation(Motion.snappy, value: selection)
     }
 
@@ -51,18 +53,20 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
         } label: {
             Label(option.title, systemImage: option.symbol)
                 .labelStyle(.titleAndIcon)
-                .font(.callout)
-                .foregroundStyle(isSelected ? Color.shelfAccent : .secondary)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
                 .padding(.horizontal, Spacing.m)
-                .frame(height: 34)
+                .frame(height: 30)
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color.shelfAccent)
+                            .matchedGeometryEffect(id: "selection", in: indicator)
+                    }
+                }
                 .contentShape(.capsule)
         }
         .buttonStyle(.plain)
-        .glassEffect(
-            isSelected ? .regular.tint(.shelfAccent.opacity(0.18)).interactive() : .regular.interactive(),
-            in: .capsule
-        )
-        .glassEffectID(option.value, in: namespace)
         .accessibilityLabel(option.title)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
