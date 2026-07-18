@@ -79,8 +79,10 @@ struct LibraryContentView: View {
                                 symbol: "square.dashed",
                                 title: "No files yet",
                                 message: "Open a category or add items to fill your library.",
-                                actionTitle: "Add Items",
-                                action: { app.requestImport() }
+                                actionTitle: "Add Files",
+                                secondaryActionTitle: "Add Link",
+                                action: { app.requestImport() },
+                                secondaryAction: { app.isPresentingAddLink = true }
                             )
                             .frame(minHeight: 260)
                         }
@@ -126,18 +128,22 @@ struct LibraryContentView: View {
                     symbol: "tray.and.arrow.down",
                     title: "Welcome to Shelf",
                     message: "Keep images, fonts, links, and notes in one place. Files stay where they are.",
-                    actionTitle: "Add Items",
+                    actionTitle: "Add Files",
+                    secondaryActionTitle: "Add Link",
                     hint: "You can also drag files straight in.",
-                    action: { app.requestImport() }
+                    action: { app.requestImport() },
+                    secondaryAction: { app.isPresentingAddLink = true }
                 )
             } else {
                 EmptyState(
                     symbol: "square.dashed",
                     title: "Nothing here yet",
                     message: "Add your first items to this library.",
-                    actionTitle: "Add Items",
+                    actionTitle: "Add Files",
+                    secondaryActionTitle: "Add Link",
                     hint: "You can also drag files straight in.",
-                    action: { app.requestImport() }
+                    action: { app.requestImport() },
+                    secondaryAction: { app.isPresentingAddLink = true }
                 )
             }
         case .recent:
@@ -148,12 +154,14 @@ struct LibraryContentView: View {
             )
         case .category:
             EmptyState(
-                symbol: "folder",
+                symbol: "square.stack",
                 title: "Nothing here yet",
-                message: "Add items to this category to get started.",
-                actionTitle: "Add Items",
+                message: "Add files from your Mac, or save a link.",
+                actionTitle: "Add Files",
+                secondaryActionTitle: "Add Link",
                 hint: "You can also drag files straight in.",
-                action: { app.requestImport() }
+                action: { app.requestImport() },
+                secondaryAction: { app.isPresentingAddLink = true }
             )
         }
     }

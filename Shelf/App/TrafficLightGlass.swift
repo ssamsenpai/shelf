@@ -114,6 +114,23 @@ struct TrafficLightGlass: NSViewRepresentable {
                 }
                 observers.tokens.append(token)
             }
+
+            // Window level notifications are not enough: any titlebar layout, such
+            // as switching pages, snaps the buttons back to their standard origins.
+            // Watching each button's own frame is what actually catches that.
+            for type in Self.buttonTypes {
+                guard let button = window.standardWindowButton(type) else { continue }
+                button.postsFrameChangedNotifications = true
+
+                let token = center.addObserver(
+                    forName: NSView.frameDidChangeNotification,
+                    object: button,
+                    queue: .main
+                ) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.apply() }
+                }
+                observers.tokens.append(token)
+            }
         }
 
         /// Captured before the first move, so reapplying is idempotent.
@@ -125,8 +142,12 @@ struct TrafficLightGlass: NSViewRepresentable {
             }
         }
 
+        private var isApplying = false
+
         private func apply() {
-            guard let window else { return }
+            guard let window, !isApplying else { return }
+            isApplying = true
+            defer { isApplying = false }
 
             for type in Self.buttonTypes {
                 guard let button = window.standardWindowButton(type),

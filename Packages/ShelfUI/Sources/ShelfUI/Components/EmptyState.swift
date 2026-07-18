@@ -8,6 +8,8 @@ public struct EmptyState: View {
     private let message: String
     private let actionTitle: String?
     private let action: (() -> Void)?
+    private let secondaryActionTitle: String?
+    private let secondaryAction: (() -> Void)?
     private let hint: String?
 
     public init(
@@ -15,15 +17,19 @@ public struct EmptyState: View {
         title: String,
         message: String,
         actionTitle: String? = nil,
+        secondaryActionTitle: String? = nil,
         hint: String? = nil,
-        action: (() -> Void)? = nil
+        action: (() -> Void)? = nil,
+        secondaryAction: (() -> Void)? = nil
     ) {
         self.symbol = symbol
         self.title = title
         self.message = message
         self.actionTitle = actionTitle
+        self.secondaryActionTitle = secondaryActionTitle
         self.hint = hint
         self.action = action
+        self.secondaryAction = secondaryAction
     }
 
     public var body: some View {
@@ -47,10 +53,17 @@ public struct EmptyState: View {
                     .multilineTextAlignment(.center)
             }
 
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.large)
+            HStack(spacing: Spacing.s) {
+                if let actionTitle, let action {
+                    Button(actionTitle, action: action)
+                        .buttonStyle(.glassProminent)
+                        .controlSize(.large)
+                }
+
+                if let secondaryActionTitle, let secondaryAction {
+                    Button(secondaryActionTitle, action: secondaryAction)
+                        .buttonStyle(.shelfSecondary)
+                }
             }
 
             if let hint {
