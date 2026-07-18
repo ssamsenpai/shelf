@@ -57,6 +57,7 @@ final class AppState {
     var quickLookURL: URL?
 
     var isPresentingImport: Bool = false
+    var isPresentingAddLink: Bool = false
     var isConfirmingRemoval: Bool = false
     var importError: String?
     /// Raised by the toolbar and the menu, handled where a model context exists.

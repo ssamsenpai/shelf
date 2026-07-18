@@ -69,6 +69,12 @@ struct RootView: View {
         } message: {
             Text("The original files stay where they are.")
         }
+        .sheet(isPresented: $app.isPresentingAddLink) {
+            AddLinkSheet(actions: actions, defaultCategory: importDestination)
+        }
+        .task {
+            actions.seedDefaultCategoriesIfNeeded()
+        }
         .fileImporter(
             isPresented: $app.isPresentingImport,
             allowedContentTypes: ItemKind.fileBacked.flatMap(\.contentTypes),

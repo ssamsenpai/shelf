@@ -21,6 +21,73 @@ struct LibraryActions {
         return category
     }
 
+    /// Categories every new library starts with. Seeded once, and never re-created
+    /// if the user renames or deletes them.
+    static let defaultCategoryNames = [
+        "Assets", "Files", "Icons", "Websites", "App Icons", "Logos", "Design Inspo"
+    ]
+
+    private static let seedKey = "didSeedDefaultCategories"
+
+    func seedDefaultCategoriesIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Self.seedKey) else { return }
+        defaults.set(true, forKey: Self.seedKey)
+
+        // Seed by name so a library that already has categories keeps them and
+        // still gains the defaults. Saving per insert rather than once at the end,
+        // because a single failure would otherwise drop the whole batch silently.
+        let existing = (try? context.fetch(FetchDescriptor<ShelfCategory>())) ?? []
+        let taken = Set(existing.map(\.name))
+
+        for name in Self.defaultCategoryNames where !taken.contains(name) {
+            context.insert(ShelfCategory(name: name))
+            do {
+                try context.save()
+            } catch {
+                app.importError = "Could not create the default category \(name)."
+                return
+            }
+        }
+    }
+
+    /// Adds a link. The Open Graph fetch only happens when the user has turned link
+    /// previews on, otherwise the card falls back to the domain and title.
+    func addLink(_ urlString: String, title: String?, into category: ShelfCategory?) async {
+        var trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if !trimmed.lowercased().hasPrefix("http") {
+            trimmed = "https://" + trimmed
+        }
+        guard let url = URL(string: trimmed), url.host() != nil else {
+            app.importError = "That does not look like a valid web address."
+            return
+        }
+
+        let host = url.host() ?? trimmed
+        let asset = Asset(
+            name: title?.isEmpty == false ? title! : host,
+            kind: .link,
+            bookmark: nil,
+            originalPath: "",
+            category: category
+        )
+        asset.linkURLString = url.absoluteString
+        context.insert(asset)
+        try? context.save()
+
+        guard let preview = await LinkPreviewService.fetch(for: url) else { return }
+
+        if let fetchedTitle = preview.title, title?.isEmpty != false {
+            asset.name = fetchedTitle
+        }
+        if let imageData = preview.imageData {
+            ThumbnailCache.store(imageData, id: asset.id)
+        }
+        try? context.save()
+    }
+
     func rename(_ category: ShelfCategory, to name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         category.name = trimmed.isEmpty ? "New Category" : trimmed
@@ -123,6 +190,12 @@ struct LibraryActions {
     /// "does not have permission to open". Access is released a moment later, once
     /// LaunchServices has had the chance to extend the sandbox to the receiver.
     private func handingOff(_ asset: Asset, _ body: (URL) -> Void) {
+        // A link has no bookmark and needs no sandbox dance.
+        if asset.isLink {
+            if let url = asset.linkURL { body(url) }
+            return
+        }
+
         guard let bookmark = asset.bookmark,
               let url = BookmarkStore.resolveURL(bookmark) else { return }
 

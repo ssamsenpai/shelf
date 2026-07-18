@@ -15,6 +15,8 @@ final class Asset {
     var bookmark: Data?
     /// Last known path, shown when the original cannot be resolved.
     var originalPath: String = ""
+    /// Set for links, which have no file and therefore no bookmark.
+    var linkURLString: String = ""
 
     var fileSize: Int64 = 0
     var pixelWidth: Int = 0
@@ -63,10 +65,22 @@ final class Asset {
         ItemKind(rawValue: kindRaw) ?? .image
     }
 
+    var isLink: Bool { kind == .link }
+
+    var linkURL: URL? {
+        linkURLString.isEmpty ? nil : URL(string: linkURLString)
+    }
+
+    /// Host without a leading www, which is what a link card shows.
+    var linkDomain: String? {
+        guard let host = linkURL?.host() else { return nil }
+        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+    }
+
     /// Derived from the stored path rather than a field, so it also applies to
     /// assets imported before extensions were shown.
     var fileExtension: String {
-        URL(fileURLWithPath: originalPath).pathExtension
+        isLink ? "" : URL(fileURLWithPath: originalPath).pathExtension
     }
 
     /// What the user sees. Finder shows the extension, so Shelf does too.
@@ -85,8 +99,10 @@ final class Asset {
         return ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file)
     }
 
-    /// What the list row shows trailing: dimensions when we have them, else size.
+    /// What the list row shows trailing: the domain for links, otherwise
+    /// dimensions when we have them, else size.
     var detailText: String? {
-        dimensionsText ?? fileSizeText
+        if isLink { return linkDomain }
+        return dimensionsText ?? fileSizeText
     }
 }

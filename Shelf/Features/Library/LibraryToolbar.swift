@@ -57,12 +57,13 @@ struct LibraryToolbar: ToolbarContent {
             }
             .help("New category")
 
-            Button {
-                app.requestImport()
+            Menu {
+                Button("Add Files...") { app.requestImport() }
+                Button("Add Link...") { app.isPresentingAddLink = true }
             } label: {
-                Label("Add Items", systemImage: "plus")
+                Label("Add", systemImage: "plus")
             }
-            .help("Add items")
+            .help("Add files or a link")
         }
 
         ToolbarSpacer(.fixed)

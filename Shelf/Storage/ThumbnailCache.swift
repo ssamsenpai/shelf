@@ -52,6 +52,13 @@ enum ThumbnailCache {
         try? FileManager.default.removeItem(at: cacheURL(for: id))
     }
 
+    /// Stores image data that did not come from a file, currently Open Graph images
+    /// for links, so links render through the same cache as everything else.
+    static func store(_ data: Data, id: UUID) {
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? data.write(to: cacheURL(for: id), options: .atomic)
+    }
+
     // MARK: Generation
 
     private static func generate(for url: URL, bookmark: Data) async -> Data? {
