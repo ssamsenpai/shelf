@@ -186,14 +186,13 @@ struct CategoryFolderGrid: View {
 
             LazyVGrid(columns: columns, alignment: .leading, spacing: Spacing.l) {
                 ForEach(categories) { category in
-                    FolderView(
-                        name: category.name,
-                        count: category.itemCount,
+                    CategoryStackTile(
+                        category: category,
                         isSelected: app.selection == .category(category.id),
                         isDropTarget: dropTargetID == category.id
                     )
                     .contentShape(.rect)
-                    .onTapGesture(count: 2) {
+                    .onTapGesture {
                         app.selection = .category(category.id)
                     }
                     .dropDestination(for: String.self) { items, _ in
