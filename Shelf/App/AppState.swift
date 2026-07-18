@@ -58,6 +58,8 @@ final class AppState {
     private let defaults = UserDefaults.standard
 
     var selection: LibrarySelection = .allItems
+    /// Held here so the sidebar's own toggle button can drive it.
+    var columnVisibility: NavigationSplitViewVisibility = .all
     var searchText: String = ""
     var selectedAssetIDs: Set<UUID> = []
 

@@ -15,8 +15,6 @@ struct LibrarySidebar: View {
     @Query(sort: \ShelfCategory.createdAt) private var categories: [ShelfCategory]
     @Query private var assets: [Asset]
 
-    @FocusState private var listFocused: Bool
-
     private var actions: LibraryActions { LibraryActions(context: context, app: app) }
 
     private var inboxCount: Int {
@@ -53,7 +51,7 @@ struct LibrarySidebar: View {
                 ) { app.selection = .inbox }
             }
 
-            Section("Categories") {
+            Section {
                 if categories.isEmpty {
                     Text("No categories yet")
                         .font(.callout)
@@ -64,13 +62,17 @@ struct LibrarySidebar: View {
                         CategorySidebarRow(category: category, actions: actions)
                     }
                 }
+            } header: {
+                SectionHeader("Categories")
             }
         }
         .listStyle(.sidebar)
         .contentMargins(.top, Spacing.xs, for: .scrollContent)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            SidebarWindowControls()
+        }
         .focusable()
         .focusEffectDisabled()
-        .focused($listFocused)
         .onKeyPress(.upArrow) { moveSelection(by: -1) }
         .onKeyPress(.downArrow) { moveSelection(by: 1) }
         .onChange(of: app.newCategoryRequested) { _, requested in
@@ -96,6 +98,72 @@ struct LibrarySidebar: View {
     }
 }
 
+/// Glass cluster at the top of the sidebar: a container behind the window's traffic
+/// lights, and the show and hide control beside it.
+private struct SidebarWindowControls: View {
+    @Environment(AppState.self) private var app
+
+    var body: some View {
+        HStack(spacing: Spacing.s) {
+            // Reserves and frames the space the system draws the traffic lights in.
+            Capsule()
+                .fill(.clear)
+                .glassEffect(.regular, in: .capsule)
+                .frame(width: 76, height: 28)
+                .allowsHitTesting(false)
+
+            Button {
+                app.columnVisibility = app.columnVisibility == .all ? .detailOnly : .all
+            } label: {
+                Image(systemName: "sidebar.leading")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 32, height: 28)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: Radius.small))
+            .help("Hide or show the sidebar")
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, Spacing.m)
+        .padding(.bottom, Spacing.s)
+    }
+}
+
+/// Quiet uppercase section label.
+private struct SectionHeader: View {
+    private let title: String
+
+    init(_ title: String) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .textCase(.uppercase)
+            .tracking(0.6)
+            .padding(.top, Spacing.s)
+    }
+}
+
+/// A count in a soft capsule, trailing the row.
+private struct CountPill: View {
+    let count: Int
+
+    var body: some View {
+        Text("\(count)")
+            .font(.shelfNumeric(12))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, Spacing.s)
+            .padding(.vertical, 2)
+            .background(Color.primary.opacity(0.07), in: .capsule)
+    }
+}
+
 /// One sidebar destination. Owns its selected and hover appearance so the fill can
 /// stay light instead of a saturated accent block.
 struct SidebarRow: View {
@@ -109,25 +177,25 @@ struct SidebarRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.s) {
+            HStack(spacing: Spacing.m) {
                 Image(systemName: symbol)
-                    .foregroundStyle(isSelected ? Color.shelfAccent : .secondary)
-                    .frame(width: 18)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.primary)
+                    .frame(width: 20, alignment: .center)
 
                 Text(title)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
+                    .truncationMode(.tail)
 
                 Spacer(minLength: Spacing.s)
 
                 if let count {
-                    Text("\(count)")
-                        .font(.shelfNumeric(12))
-                        .foregroundStyle(.secondary)
+                    CountPill(count: count)
                 }
             }
-            .padding(.horizontal, Spacing.s)
-            .padding(.vertical, Spacing.xs + 1)
+            .padding(.horizontal, Spacing.m)
+            .frame(height: 34)
             .background(SidebarRowBackground(isSelected: isSelected, isHovering: hovering))
             .contentShape(.rect)
         }
@@ -152,8 +220,8 @@ struct SidebarRowBackground: View {
 
     private var fill: Color {
         if isTargeted { return .shelfAccent.opacity(0.18) }
-        if isSelected { return .shelfSelection }
-        if isHovering { return .shelfSelection.opacity(0.45) }
+        if isSelected { return .primary.opacity(0.08) }
+        if isHovering { return .primary.opacity(0.04) }
         return .clear
     }
 }
@@ -175,10 +243,11 @@ private struct CategorySidebarRow: View {
         Button {
             app.selection = .category(category.id)
         } label: {
-            HStack(spacing: Spacing.s) {
-                Image(systemName: "folder")
-                    .foregroundStyle(isSelected ? Color.shelfAccent : .secondary)
-                    .frame(width: 18)
+            HStack(spacing: Spacing.m) {
+                Image(systemName: "tray.2")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.primary)
+                    .frame(width: 20, alignment: .center)
 
                 if isRenaming {
                     TextField("Name", text: $category.name)
@@ -193,17 +262,15 @@ private struct CategorySidebarRow: View {
                     Text(category.name)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                        .truncationMode(.middle)
+                        .truncationMode(.tail)
 
                     Spacer(minLength: Spacing.s)
 
-                    Text("\(category.itemCount)")
-                        .font(.shelfNumeric(12))
-                        .foregroundStyle(.secondary)
+                    CountPill(count: category.itemCount)
                 }
             }
-            .padding(.horizontal, Spacing.s)
-            .padding(.vertical, Spacing.xs + 1)
+            .padding(.horizontal, Spacing.m)
+            .frame(height: 34)
             .background(
                 SidebarRowBackground(
                     isSelected: isSelected,

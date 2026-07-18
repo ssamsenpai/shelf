@@ -11,9 +11,6 @@ struct RootView: View {
     @Query private var assets: [Asset]
     @Query(sort: \ShelfCategory.createdAt) private var categories: [ShelfCategory]
 
-    /// The sidebar starts open rather than collapsed.
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
-
     private var actions: LibraryActions { LibraryActions(context: context, app: app) }
 
     private var selectedAssets: [Asset] {
@@ -29,7 +26,7 @@ struct RootView: View {
     var body: some View {
         @Bindable var app = app
 
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        NavigationSplitView(columnVisibility: $app.columnVisibility) {
             LibrarySidebar()
                 .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
