@@ -67,6 +67,8 @@ final class AppState {
 
     /// Category currently being renamed inline, the way Finder names a new folder.
     var renamingCategoryID: UUID?
+    /// Category whose icon picker sheet is open.
+    var iconPickerCategoryID: UUID?
     /// Bound to the Quick Look panel, driven by Space.
     var quickLookURL: URL?
 

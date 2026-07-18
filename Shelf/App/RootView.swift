@@ -75,6 +75,17 @@ struct RootView: View {
         .sheet(isPresented: $app.isPresentingAddLink) {
             AddLinkSheet(actions: actions, defaultCategory: importDestination)
         }
+        .sheet(
+            isPresented: Binding(
+                get: { app.iconPickerCategoryID != nil },
+                set: { if !$0 { app.iconPickerCategoryID = nil } }
+            )
+        ) {
+            if let id = app.iconPickerCategoryID,
+               let category = categories.first(where: { $0.id == id }) {
+                SymbolPickerSheet(category: category, actions: actions)
+            }
+        }
         .task {
             actions.seedDefaultCategoriesIfNeeded()
             selectFirstAssetIfNeeded()

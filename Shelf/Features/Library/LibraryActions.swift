@@ -88,6 +88,18 @@ struct LibraryActions {
         try? context.save()
     }
 
+    func setIcon(_ category: ShelfCategory, symbol: String) {
+        category.symbolName = symbol
+        try? context.save()
+    }
+
+    /// Fronts the category's card stack with this asset's preview.
+    func setAsCover(_ asset: Asset) {
+        guard let category = asset.category else { return }
+        category.coverAssetID = asset.id
+        try? context.save()
+    }
+
     func rename(_ category: ShelfCategory, to name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         category.name = trimmed.isEmpty ? "New Category" : trimmed

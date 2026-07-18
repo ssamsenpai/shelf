@@ -56,8 +56,19 @@ struct TrafficLightGlass: NSViewRepresentable {
         toggle.translatesAutoresizingMaskIntoConstraints = false
         titlebar.addSubview(toggle, positioned: .above, relativeTo: nil)
 
+        // The close button sits only a few points from the window edge, so a
+        // symmetric inset would push the capsule past the corner and clip it flat.
+        // The margin from the window edge is required, the symmetric look optional.
+        let symmetricLeading = capsule.leadingAnchor.constraint(
+            equalTo: close.leadingAnchor, constant: -capsuleInset
+        )
+        symmetricLeading.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
-            capsule.leadingAnchor.constraint(equalTo: close.leadingAnchor, constant: -capsuleInset),
+            capsule.leadingAnchor.constraint(
+                greaterThanOrEqualTo: titlebar.leadingAnchor, constant: Spacing.s
+            ),
+            symmetricLeading,
             capsule.trailingAnchor.constraint(equalTo: zoom.trailingAnchor, constant: capsuleInset),
             capsule.centerYAnchor.constraint(equalTo: close.centerYAnchor),
             capsule.heightAnchor.constraint(equalToConstant: clusterHeight),

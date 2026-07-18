@@ -27,6 +27,10 @@ struct AssetContextMenu: View {
             Button("No Category") { actions.move([asset], to: nil) }
         }
 
+        if asset.category != nil {
+            Button("Set as Category Cover") { actions.setAsCover(asset) }
+        }
+
         Button("Get Info") {
             app.selectedAssetIDs = [asset.id]
             app.inspectorPresented = true

@@ -94,12 +94,9 @@ struct LibraryContentView: View {
             }
         }
         .background(Color.shelfContent)
-        // The scrim fades content out beneath the floating switcher. Both sit
-        // outside the scroll views so they stay put while content moves.
-        .overlay(alignment: .bottom) {
-            BottomScrim()
-                .ignoresSafeArea(edges: .bottom)
-        }
+        // The system's Liquid Glass edge treatment, not a hand rolled blur: content
+        // dissolves under the floating switcher the way it does under toolbars.
+        .scrollEdgeEffectStyle(.soft, for: .bottom)
         .overlay(alignment: .bottom) {
             GlassSegmentedControl(
                 selection: $app.viewMode,
@@ -207,6 +204,7 @@ struct CategoryFolderGrid: View {
                     .contextMenu {
                         Button("Open") { app.selection = .category(category.id) }
                         Button("Rename") { app.renamingCategoryID = category.id }
+                        Button("Change Icon...") { app.iconPickerCategoryID = category.id }
                         Divider()
                         Button("Delete", role: .destructive) { actions.delete(category) }
                     }

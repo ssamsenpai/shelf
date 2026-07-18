@@ -15,7 +15,8 @@ struct CategoryStackTile: View {
             count: category.itemCount,
             previews: previews,
             isSelected: isSelected,
-            isDropTarget: isDropTarget
+            isDropTarget: isDropTarget,
+            placeholderSymbol: category.symbolName
         )
         .task(id: previewKey) {
             previews = await loadPreviews()
@@ -28,11 +29,17 @@ struct CategoryStackTile: View {
         newestAssets.map(\.id.uuidString).joined()
     }
 
+    /// The chosen cover fronts the stack, then the newest of the rest behind it.
     private var newestAssets: [Asset] {
-        category.assets
-            .sorted { $0.addedAt > $1.addedAt }
-            .prefix(3)
-            .map { $0 }
+        let sorted = category.assets.sorted { $0.addedAt > $1.addedAt }
+
+        guard let coverID = category.coverAssetID,
+              let cover = sorted.first(where: { $0.id == coverID })
+        else {
+            return Array(sorted.prefix(3))
+        }
+
+        return [cover] + sorted.filter { $0.id != coverID }.prefix(2)
     }
 
     private func loadPreviews() async -> [Image?] {

@@ -197,7 +197,7 @@ private struct CategorySidebarRow: View {
             app.selection = .category(category.id)
         } label: {
             HStack(spacing: Spacing.m) {
-                Image(systemName: "square.stack")
+                Image(systemName: category.symbolName)
                     .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(.primary)
                     .frame(width: 20, alignment: .center)
@@ -246,6 +246,8 @@ private struct CategorySidebarRow: View {
         .shelfAnimation(Motion.snappy, value: hovering)
         .contextMenu {
             Button("Rename") { app.renamingCategoryID = category.id }
+            Button("Change Icon...") { app.iconPickerCategoryID = category.id }
+            Divider()
             Button("Delete", role: .destructive) { actions.delete(category) }
         }
     }

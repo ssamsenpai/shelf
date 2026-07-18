@@ -11,6 +11,11 @@ final class ShelfCategory {
     var name: String = "New Category"
     var createdAt: Date = Date()
 
+    /// SF Symbol shown in the sidebar and on empty cards. User picked.
+    var symbolName: String = "square.stack"
+    /// The asset whose preview fronts the card stack. Nil falls back to newest.
+    var coverAssetID: UUID?
+
     @Relationship(deleteRule: .nullify, inverse: \Asset.category)
     var assets: [Asset] = []
 

@@ -13,6 +13,7 @@ public struct StackedCards: View {
     private let previews: [Image?]
     private let isSelected: Bool
     private let isDropTarget: Bool
+    private let placeholderSymbol: String
 
     @State private var hovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -22,13 +23,15 @@ public struct StackedCards: View {
         count: Int,
         previews: [Image?],
         isSelected: Bool = false,
-        isDropTarget: Bool = false
+        isDropTarget: Bool = false,
+        placeholderSymbol: String = "square.stack"
     ) {
         self.name = name
         self.count = count
         self.previews = previews
         self.isSelected = isSelected
         self.isDropTarget = isDropTarget
+        self.placeholderSymbol = placeholderSymbol
     }
 
     private var isActive: Bool { hovering || isDropTarget }
@@ -114,7 +117,7 @@ public struct StackedCards: View {
                     } else {
                         // Solid enough to read as deliberate rather than as a
                         // card that failed to load.
-                        Image(systemName: count == 0 ? "plus" : "square.stack")
+                        Image(systemName: count == 0 ? "plus" : placeholderSymbol)
                             .font(.system(size: 22, weight: .regular))
                             .foregroundStyle(.secondary)
                     }
