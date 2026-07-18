@@ -112,33 +112,47 @@ struct InspectorPane: View {
     }
 
     /// Open and copy sit right under the name, where they are easiest to reach.
+    /// Neutral rather than accent tinted: these are secondary to the content, and
+    /// the window tint would otherwise fill them solid blue.
     private func actions(for asset: Asset) -> some View {
         HStack(spacing: Spacing.s) {
             Button {
                 actions.open(asset)
             } label: {
-                Label("Open", systemImage: "arrow.up.forward.app")
-                    .frame(maxWidth: .infinity)
+                actionLabel("Open", symbol: "arrow.up.forward.app")
             }
-            .buttonStyle(.glass)
 
             Button {
                 actions.copy(asset)
             } label: {
-                Label("Copy", systemImage: "doc.on.doc")
-                    .frame(maxWidth: .infinity)
+                actionLabel("Copy", symbol: "doc.on.doc")
             }
-            .buttonStyle(.glass)
 
             Button {
                 actions.revealInFinder(asset)
             } label: {
-                Image(systemName: "folder")
+                actionLabel(nil, symbol: "folder")
             }
-            .buttonStyle(.glass)
             .help("Reveal in Finder")
+            .accessibilityLabel("Reveal in Finder")
         }
-        .controlSize(.regular)
+        .buttonStyle(.bordered)
+        .controlSize(.large)
+        .tint(Color.secondary)
+    }
+
+    /// A fixed content height on every label is what keeps the three the same size,
+    /// since the icon only button has no text to set its intrinsic height.
+    private func actionLabel(_ title: String?, symbol: String) -> some View {
+        HStack(spacing: Spacing.xs) {
+            Image(systemName: symbol)
+            if let title {
+                Text(title)
+            }
+        }
+        .font(.callout)
+        .frame(height: 18)
+        .frame(maxWidth: title == nil ? nil : .infinity)
     }
 
     private func metadata(for asset: Asset) -> some View {
