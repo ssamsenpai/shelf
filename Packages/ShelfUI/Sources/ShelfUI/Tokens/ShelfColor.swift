@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 public extension Color {
@@ -12,4 +13,12 @@ public extension Color {
     static let shelfWell = Color(nsColor: .quaternarySystemFill)
     /// Meaningful separators only.
     static let shelfSeparator = Color(nsColor: .separatorColor)
+
+    /// Sidebar selection fill. A soft white wash rather than a solid accent block,
+    /// so the accent tinted label stays legible on top. Carries more opacity in
+    /// light mode, where the sidebar material is already bright.
+    static let shelfSelection = Color(nsColor: NSColor(name: nil) { appearance in
+        let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+        return NSColor.white.withAlphaComponent(isDark ? 0.14 : 0.62)
+    })
 }

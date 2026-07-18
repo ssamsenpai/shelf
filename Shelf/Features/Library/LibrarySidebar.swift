@@ -50,10 +50,14 @@ struct LibrarySidebar: View {
             }
         }
         .listStyle(.sidebar)
+        // The sidebar highlight is drawn in the list's tint, so retinting it gives a
+        // soft wash instead of a solid accent block. Labels supply the accent.
+        .tint(Color.shelfSelection)
+        .contentMargins(.top, Spacing.xs, for: .scrollContent)
         .safeAreaInset(edge: .top, spacing: 0) {
             SearchField(text: $app.searchText, prompt: "Search Shelf")
                 .padding(.horizontal, Spacing.m)
-                .padding(.bottom, Spacing.s)
+                .padding(.bottom, Spacing.xs)
         }
         .onChange(of: app.newCategoryRequested) { _, requested in
             guard requested else { return }
@@ -69,7 +73,10 @@ struct LibrarySidebar: View {
         title: String,
         count: Int?
     ) -> some View {
-        Label(title, systemImage: symbol)
+        let isSelected = app.selection == selection
+
+        return Label(title, systemImage: symbol)
+            .foregroundStyle(isSelected ? Color.shelfAccent : .primary)
             .badge(count.map { Text("\($0)").font(.shelfNumeric(12)) })
             .tag(selection)
     }
@@ -85,11 +92,12 @@ private struct CategorySidebarRow: View {
     @State private var isTargeted = false
 
     private var isRenaming: Bool { app.renamingCategoryID == category.id }
+    private var isSelected: Bool { app.selection == .category(category.id) }
 
     var body: some View {
         HStack(spacing: Spacing.s) {
             Image(systemName: "folder")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(isSelected ? Color.shelfAccent : .secondary)
 
             if isRenaming {
                 TextField("Name", text: $category.name)
@@ -104,6 +112,7 @@ private struct CategorySidebarRow: View {
                     }
             } else {
                 Text(category.name)
+                    .foregroundStyle(isSelected ? Color.shelfAccent : .primary)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
