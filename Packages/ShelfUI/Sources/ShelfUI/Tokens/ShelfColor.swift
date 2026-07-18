@@ -14,6 +14,15 @@ public extension Color {
     /// Meaningful separators only.
     static let shelfSeparator = Color(nsColor: .separatorColor)
 
+    /// A raised chip sitting on glass, such as the selected segment of a floating
+    /// control. Near white in light, a lifted gray in dark.
+    static let shelfRaised = Color(nsColor: NSColor(name: nil) { appearance in
+        let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+        return isDark
+            ? NSColor.white.withAlphaComponent(0.22)
+            : NSColor.white.withAlphaComponent(0.95)
+    })
+
     /// Sidebar selection fill. A soft white wash rather than a solid accent block,
     /// so the accent tinted label stays legible on top. Carries more opacity in
     /// light mode, where the sidebar material is already bright.

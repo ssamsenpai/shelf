@@ -14,35 +14,22 @@ struct AssetCanvasView: View {
     /// looking rather than for filing.
     private var tileSize: CGFloat { app.gridSize * 1.15 }
 
-    private var rows: [GridItem] {
-        Array(
-            repeating: GridItem(.fixed(tileSize + 28), spacing: Spacing.l, alignment: .top),
-            count: rowCount
-        )
-    }
-
-    /// Row height is fixed and width follows the asset, so a wide image reads as a
-    /// wide tile instead of a letterboxed square. Clamped so a panorama or a very
-    /// tall export cannot dominate the row.
+    /// Every tile is the same height, so rows line up cleanly. Only the width
+    /// varies, which is what lets a wide image read as a wide tile rather than a
+    /// letterboxed square. Clamped so a panorama cannot run off on its own.
     private func aspect(for asset: Asset) -> CGFloat {
         guard asset.pixelWidth > 0, asset.pixelHeight > 0 else { return 1 }
         let ratio = CGFloat(asset.pixelWidth) / CGFloat(asset.pixelHeight)
         return min(max(ratio, 0.55), 2.4)
     }
 
-    /// Fewer rows for small collections, so a handful of items does not stretch
-    /// into a thin ribbon.
-    private var rowCount: Int {
-        switch assets.count {
-        case 0...3: 1
-        case 4...8: 2
-        default: 3
-        }
-    }
+    /// Preview height plus the single line of filename beneath it.
+    private var tileHeight: CGFloat { tileSize + 22 }
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            LazyHGrid(rows: rows, alignment: .top, spacing: Spacing.l) {
+        ScrollView(.vertical) {
+            // Rows wrap and flow downward, so the canvas scrolls in one direction.
+            FlowLayout(spacing: Spacing.xxl) {
                 ForEach(assets) { asset in
                     ThumbnailProvider(asset: asset) { image in
                         AssetTile(
@@ -56,7 +43,7 @@ struct AssetCanvasView: View {
                             onOpen: { actions.revealInFinder(asset) }
                         )
                     }
-                    .frame(width: tileSize * aspect(for: asset))
+                    .frame(width: tileSize * aspect(for: asset), height: tileHeight)
                     .contentShape(.rect)
                     .onTapGesture { app.selectedAssetIDs = [asset.id] }
                     .draggable(asset.id.uuidString)
@@ -69,6 +56,5 @@ struct AssetCanvasView: View {
             // Room for the floating switcher to sit over empty space.
             .padding(.bottom, Spacing.xxl * 2)
         }
-        .scrollBounceBehavior(.basedOnSize, axes: [.horizontal, .vertical])
     }
 }

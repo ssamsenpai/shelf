@@ -51,16 +51,18 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
         return Button {
             selection = option.value
         } label: {
-            Label(option.title, systemImage: option.symbol)
-                .labelStyle(.titleAndIcon)
-                .font(.callout.weight(.medium))
-                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
-                .padding(.horizontal, Spacing.m)
+            Text(option.title)
+                .font(.callout.weight(isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? .primary : .secondary)
+                .padding(.horizontal, Spacing.l)
                 .frame(height: 30)
                 .background {
                     if isSelected {
+                        // A raised chip rather than an accent fill, so the label
+                        // stays legible and the control reads as one surface.
                         Capsule()
-                            .fill(Color.shelfAccent)
+                            .fill(Color.shelfRaised)
+                            .shelfShadow(lifted: true)
                             .matchedGeometryEffect(id: "selection", in: indicator)
                     }
                 }
