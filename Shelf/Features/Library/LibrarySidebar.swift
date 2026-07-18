@@ -63,11 +63,6 @@ struct LibrarySidebar: View {
         }
         .listStyle(.sidebar)
         .contentMargins(.top, Spacing.xs, for: .scrollContent)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            SearchField(text: $app.searchText, prompt: "Search Shelf")
-                .padding(.horizontal, Spacing.m)
-                .padding(.bottom, Spacing.xs)
-        }
         .onChange(of: app.newCategoryRequested) { _, requested in
             guard requested else { return }
             actions.createCategory()

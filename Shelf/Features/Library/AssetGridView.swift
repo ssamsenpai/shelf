@@ -21,7 +21,8 @@ struct AssetGridView: View {
                         kindTitle: asset.kind.title,
                         symbol: asset.kind.symbol,
                         thumbnail: image,
-                        isSelected: app.selectedAssetIDs.contains(asset.id)
+                        isSelected: app.selectedAssetIDs.contains(asset.id),
+                        onOpen: { actions.revealInFinder(asset) }
                     )
                 }
                 .contentShape(.rect)

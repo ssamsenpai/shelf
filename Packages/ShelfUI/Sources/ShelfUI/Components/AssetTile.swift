@@ -8,6 +8,7 @@ public struct AssetTile: View {
     private let symbol: String
     private let thumbnail: Image?
     private let isSelected: Bool
+    private let onOpen: (() -> Void)?
 
     @State private var hovering = false
 
@@ -16,13 +17,15 @@ public struct AssetTile: View {
         kindTitle: String,
         symbol: String,
         thumbnail: Image?,
-        isSelected: Bool = false
+        isSelected: Bool = false,
+        onOpen: (() -> Void)? = nil
     ) {
         self.name = name
         self.kindTitle = kindTitle
         self.symbol = symbol
         self.thumbnail = thumbnail
         self.isSelected = isSelected
+        self.onOpen = onOpen
     }
 
     public var body: some View {
@@ -43,6 +46,12 @@ public struct AssetTile: View {
             }
             .aspectRatio(1, contentMode: .fit)
             .clipShape(RoundedRectangle.shelf(Radius.medium))
+            .overlay(alignment: .topTrailing) {
+                if hovering, let onOpen {
+                    OpenAffordance(action: onOpen)
+                        .padding(Spacing.s)
+                }
+            }
             .overlay {
                 RoundedRectangle.shelf(Radius.medium)
                     .strokeBorder(Color.shelfAccent, lineWidth: isSelected ? 2.5 : 0)
@@ -50,18 +59,11 @@ public struct AssetTile: View {
             .scaleEffect(hovering ? 1.02 : 1)
             .shelfShadow(lifted: hovering)
 
-            VStack(spacing: 1) {
-                Text(name)
-                    .font(.caption)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-
-                Text(kindTitle)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .opacity(hovering ? 1 : 0)
-            }
+            Text(name)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
         }
         .padding(Spacing.xs)
         .background(
@@ -72,6 +74,26 @@ public struct AssetTile: View {
         .shelfAnimation(Motion.smooth, value: hovering)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(name), \(kindTitle)")
+    }
+}
+
+/// Hover affordance that opens the referenced file outside Shelf. A system material
+/// rather than glass, since this sits on content.
+private struct OpenAffordance: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.up.forward")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.primary)
+                .frame(width: 22, height: 22)
+                .background(.regularMaterial, in: .circle)
+        }
+        .buttonStyle(.plain)
+        .help("Open in Finder")
+        .accessibilityLabel("Open in Finder")
+        .transition(.opacity)
     }
 }
 
