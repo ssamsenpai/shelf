@@ -1,9 +1,9 @@
 import SwiftUI
 import ShelfUI
 
-/// The window toolbar. On macOS 26 the system already renders toolbar items on
-/// glass and merges neighbours into clusters, so this applies no glass of its own.
-/// `ToolbarSpacer` is what separates one glass cluster from the next.
+/// The window toolbar. macOS 26 renders toolbar items on glass and merges
+/// neighbours into clusters already, so nothing here applies glass of its own.
+/// `ToolbarSpacer` is what separates one cluster from the next.
 struct LibraryToolbar: ToolbarContent {
     @Environment(AppState.self) private var app
 
@@ -19,10 +19,18 @@ struct LibraryToolbar: ToolbarContent {
             .help("Switch between grid and list")
 
             Menu {
-                Picker("Sort By", selection: $app.sortOrder) {
-                    ForEach(SortOrder.allCases) { order in
-                        Text(order.rawValue).tag(order)
+                Picker("Sort By", selection: $app.sortField) {
+                    ForEach(SortField.allCases) { field in
+                        Text(field.title).tag(field)
                     }
+                }
+                .pickerStyle(.inline)
+
+                Divider()
+
+                Picker("Order", selection: $app.sortAscending) {
+                    Text("Ascending").tag(true)
+                    Text("Descending").tag(false)
                 }
                 .pickerStyle(.inline)
             } label: {
@@ -31,22 +39,30 @@ struct LibraryToolbar: ToolbarContent {
             .help("Sort items")
         }
 
+        if app.viewMode == .grid {
+            ToolbarItem {
+                Slider(value: $app.gridSize, in: 96...220)
+                    .frame(width: 90)
+                    .help("Preview size")
+            }
+        }
+
         ToolbarSpacer(.flexible)
 
         ToolbarItemGroup {
             Button {
-                app.requestNewFolder()
+                app.newCategoryRequested = true
             } label: {
-                Label("New Folder", systemImage: "folder.badge.plus")
+                Label("New Category", systemImage: "folder.badge.plus")
             }
-            .help("New folder")
+            .help("New category")
 
             Button {
                 app.requestImport()
             } label: {
-                Label("Import", systemImage: "plus")
+                Label("Add Items", systemImage: "plus")
             }
-            .help("Import items")
+            .help("Add items")
         }
 
         ToolbarSpacer(.fixed)

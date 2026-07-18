@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import ShelfUI
 
@@ -12,18 +13,22 @@ struct ShelfApp: App {
                 .tint(.shelfAccent)
         }
         .defaultSize(width: 1180, height: 760)
+        .modelContainer(for: [ShelfCategory.self, Asset.self])
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("New Folder") { app.requestNewFolder() }
+                Button("New Category") { app.newCategoryRequested = true }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                Button("Import...") { app.requestImport() }
+                Button("Add Items...") { app.requestImport() }
                     .keyboardShortcut("i", modifiers: .command)
+            }
+            CommandGroup(after: .sidebar) {
+                Button("Show Inspector") { app.inspectorPresented.toggle() }
+                    .keyboardShortcut("i", modifiers: [.command, .option])
             }
         }
 
         Settings {
             SettingsView()
-                .environment(app)
                 .tint(.shelfAccent)
         }
     }
