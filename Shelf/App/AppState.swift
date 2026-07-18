@@ -11,14 +11,24 @@ enum LibrarySelection: Hashable, Codable {
     case category(UUID)
 }
 
-enum ViewMode: String, Hashable, CaseIterable {
+enum ViewMode: String, Hashable, CaseIterable, Sendable {
     case grid
+    case canvas
     case list
 
     var symbol: String {
         switch self {
         case .grid: "square.grid.2x2"
+        case .canvas: "rectangle.3.group"
         case .list: "list.bullet"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .grid: "Grid"
+        case .canvas: "Canvas"
+        case .list: "List"
         }
     }
 }

@@ -10,14 +10,9 @@ struct LibraryToolbar: ToolbarContent {
     var body: some ToolbarContent {
         @Bindable var app = app
 
+        // The view mode switcher lives in the floating control at the bottom, so
+        // the toolbar does not duplicate it.
         ToolbarItemGroup {
-            Picker("View", selection: $app.viewMode) {
-                Image(systemName: ViewMode.grid.symbol).tag(ViewMode.grid)
-                Image(systemName: ViewMode.list.symbol).tag(ViewMode.list)
-            }
-            .pickerStyle(.segmented)
-            .help("Switch between grid and list")
-
             Menu {
                 Picker("Sort By", selection: $app.sortField) {
                     ForEach(SortField.allCases) { field in
@@ -39,7 +34,7 @@ struct LibraryToolbar: ToolbarContent {
             .help("Sort items")
         }
 
-        if app.viewMode == .grid {
+        if app.viewMode != .list {
             ToolbarItem {
                 Slider(value: $app.gridSize, in: 96...220)
                     .frame(width: 90)

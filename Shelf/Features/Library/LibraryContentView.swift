@@ -52,6 +52,8 @@ struct LibraryContentView: View {
         return Group {
             if assets.isEmpty && !showsCategoryGrid {
                 emptyState
+            } else if app.viewMode == .canvas {
+                AssetCanvasView(assets: assets, actions: actions)
             } else if app.viewMode == .list {
                 // List owns its own scrolling, so it is the root here rather than
                 // being nested inside a ScrollView where it would clip.
@@ -90,6 +92,21 @@ struct LibraryContentView: View {
             }
         }
         .background(Color.shelfContent)
+        // The scrim fades content out beneath the floating switcher. Both sit
+        // outside the scroll views so they stay put while content moves.
+        .overlay(alignment: .bottom) {
+            BottomScrim()
+                .ignoresSafeArea(edges: .bottom)
+        }
+        .overlay(alignment: .bottom) {
+            GlassSegmentedControl(
+                selection: $app.viewMode,
+                options: ViewMode.allCases.map {
+                    .init(value: $0, symbol: $0.symbol, title: $0.title)
+                }
+            )
+            .padding(.bottom, Spacing.xl)
+        }
         .navigationTitle(app.title(for: currentCategory))
         .quickLookPreview($app.quickLookURL)
     }
