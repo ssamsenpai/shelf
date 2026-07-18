@@ -27,7 +27,7 @@ struct AssetListView: View {
                 ForEach(assets) { asset in
                     ThumbnailProvider(asset: asset) { image in
                         AssetRow(
-                            name: asset.name,
+                            name: asset.displayName,
                             kindTitle: asset.kind.title,
                             symbol: asset.kind.symbol,
                             detail: asset.detailText,

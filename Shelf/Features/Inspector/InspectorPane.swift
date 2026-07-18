@@ -68,9 +68,12 @@ struct InspectorPane: View {
                     .clipShape(RoundedRectangle.shelf(Radius.medium))
                 }
 
-                Text(asset.name)
+                Text(asset.displayName)
                     .font(.headline)
                     .lineLimit(2)
+                    .textSelection(.enabled)
+
+                actions(for: asset)
 
                 metadata(for: asset)
 
@@ -108,9 +111,42 @@ struct InspectorPane: View {
         }
     }
 
+    /// Open and copy sit right under the name, where they are easiest to reach.
+    private func actions(for asset: Asset) -> some View {
+        HStack(spacing: Spacing.s) {
+            Button {
+                actions.open(asset)
+            } label: {
+                Label("Open", systemImage: "arrow.up.forward.app")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glass)
+
+            Button {
+                actions.copy(asset)
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glass)
+
+            Button {
+                actions.revealInFinder(asset)
+            } label: {
+                Image(systemName: "folder")
+            }
+            .buttonStyle(.glass)
+            .help("Reveal in Finder")
+        }
+        .controlSize(.regular)
+    }
+
     private func metadata(for asset: Asset) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
             row("Kind", asset.kind.title)
+            if !asset.fileExtension.isEmpty {
+                row("Format", asset.fileExtension.uppercased())
+            }
             if let dimensions = asset.dimensionsText {
                 row("Dimensions", dimensions)
             }

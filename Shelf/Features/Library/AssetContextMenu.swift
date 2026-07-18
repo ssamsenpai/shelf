@@ -13,6 +13,7 @@ struct AssetContextMenu: View {
         Button("Open") { actions.open(asset) }
         Button("Quick Look") { actions.quickLook(asset) }
         Button("Reveal in Finder") { actions.revealInFinder(asset) }
+        Button("Copy") { actions.copy(asset) }
 
         Divider()
 

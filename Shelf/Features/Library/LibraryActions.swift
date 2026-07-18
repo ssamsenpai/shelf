@@ -92,19 +92,47 @@ struct LibraryActions {
     }
 
     func revealInFinder(_ asset: Asset) {
-        guard let bookmark = asset.bookmark,
-              let url = BookmarkStore.resolveURL(bookmark) else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([url])
+        handingOff(asset) { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
     }
 
     func open(_ asset: Asset) {
-        guard let bookmark = asset.bookmark,
-              let url = BookmarkStore.resolveURL(bookmark) else { return }
-        NSWorkspace.shared.open(url)
+        handingOff(asset) { NSWorkspace.shared.open($0) }
     }
 
     func quickLook(_ asset: Asset) {
-        guard let bookmark = asset.bookmark else { return }
-        app.quickLookURL = BookmarkStore.resolveURL(bookmark)
+        handingOff(asset) { app.quickLookURL = $0 }
+    }
+
+    /// Copies the file itself, plus the image where there is one, so pasting works
+    /// in Finder and in an editor alike.
+    func copy(_ asset: Asset) {
+        handingOff(asset) { url in
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+
+            var items: [any NSPasteboardWriting] = [url as NSURL]
+            if let image = NSImage(contentsOf: url) {
+                items.append(image)
+            }
+            pasteboard.writeObjects(items)
+        }
+    }
+
+    /// Hands a referenced file to another process. Security scoped access has to be
+    /// held across the call, otherwise the sandbox refuses and the user sees
+    /// "does not have permission to open". Access is released a moment later, once
+    /// LaunchServices has had the chance to extend the sandbox to the receiver.
+    private func handingOff(_ asset: Asset, _ body: (URL) -> Void) {
+        guard let bookmark = asset.bookmark,
+              let url = BookmarkStore.resolveURL(bookmark) else { return }
+
+        let scoped = url.startAccessingSecurityScopedResource()
+        body(url)
+
+        guard scoped else { return }
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            url.stopAccessingSecurityScopedResource()
+        }
     }
 }

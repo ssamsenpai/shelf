@@ -63,6 +63,17 @@ final class Asset {
         ItemKind(rawValue: kindRaw) ?? .image
     }
 
+    /// Derived from the stored path rather than a field, so it also applies to
+    /// assets imported before extensions were shown.
+    var fileExtension: String {
+        URL(fileURLWithPath: originalPath).pathExtension
+    }
+
+    /// What the user sees. Finder shows the extension, so Shelf does too.
+    var displayName: String {
+        fileExtension.isEmpty ? name : "\(name).\(fileExtension)"
+    }
+
     /// Dimensions line for the inspector and list detail, when meaningful.
     var dimensionsText: String? {
         guard pixelWidth > 0, pixelHeight > 0 else { return nil }
