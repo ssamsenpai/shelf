@@ -86,6 +86,8 @@ struct LibraryContentView: View {
                         }
                     }
                     .padding(Spacing.xl)
+                    // Clears the scrim and the floating switcher.
+                    .padding(.bottom, Spacing.xxl * 3)
                 }
             }
         }

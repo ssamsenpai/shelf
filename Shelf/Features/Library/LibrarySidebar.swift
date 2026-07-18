@@ -56,6 +56,7 @@ struct LibrarySidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .toolbar(removing: .sidebarToggle)
         .contentMargins(.top, Spacing.xs, for: .scrollContent)
         .focusable()
         .focusEffectDisabled()
@@ -152,7 +153,7 @@ struct SidebarRow: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.xs, bottom: 1, trailing: Spacing.s))
+        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
         .listRowSeparator(.hidden)
         .onHover { hovering = $0 }
         .shelfAnimation(Motion.snappy, value: hovering)
@@ -233,7 +234,7 @@ private struct CategorySidebarRow: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: Spacing.xs, bottom: 1, trailing: Spacing.s))
+        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
         .listRowSeparator(.hidden)
         .onHover { hovering = $0 }
         .dropDestination(for: String.self) { items, _ in

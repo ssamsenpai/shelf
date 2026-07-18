@@ -41,7 +41,7 @@ struct RootView: View {
         }
         // Installs the glass capsule behind the traffic lights, in the titlebar
         // where those buttons actually live.
-        .background(TrafficLightGlass())
+        .background(TrafficLightGlass(app: app))
         // Native toolbar search, so it sits in the header the way Finder's does.
         .searchable(text: $app.searchText, prompt: "Search Shelf")
         .shelfAnimation(Motion.smooth, value: app.inspectorPresented)

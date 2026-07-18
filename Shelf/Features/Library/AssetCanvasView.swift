@@ -30,7 +30,7 @@ struct AssetCanvasView: View {
             }
             .padding(Spacing.xl)
             // Room for the floating switcher to sit over empty space.
-            .padding(.bottom, Spacing.xxl * 2)
+            .padding(.bottom, Spacing.xxl * 3)
         }
     }
 

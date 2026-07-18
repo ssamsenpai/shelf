@@ -43,5 +43,7 @@ struct AssetListView: View {
             }
         }
         .listStyle(.inset)
+        // Clears the scrim and the floating switcher.
+        .contentMargins(.bottom, Spacing.xxl * 3, for: .scrollContent)
     }
 }
