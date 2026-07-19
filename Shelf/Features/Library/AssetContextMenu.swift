@@ -12,7 +12,13 @@ struct AssetContextMenu: View {
     var body: some View {
         Button("Open") { actions.open(asset) }
         Button("Quick Look") { actions.quickLook(asset) }
-        Button("Reveal in Finder") { actions.revealInFinder(asset) }
+        if asset.isLink {
+            Button("Fetch Preview") {
+                Task { await actions.fetchLinkPreview(asset) }
+            }
+        } else {
+            Button("Reveal in Finder") { actions.revealInFinder(asset) }
+        }
         Button("Copy") { actions.copy(asset) }
 
         Divider()

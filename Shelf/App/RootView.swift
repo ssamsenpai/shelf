@@ -4,6 +4,9 @@ import ShelfUI
 
 /// The window shell. The sidebar and toolbar get their glass from the system, so
 /// nothing here applies a glass effect of its own. Stacking would break it.
+///
+/// The modifier chain is split into layers because one flat chain of this size is
+/// beyond what the type checker will resolve in reasonable time.
 struct RootView: View {
     @Environment(AppState.self) private var app
     @Environment(\.modelContext) private var context
@@ -11,22 +14,31 @@ struct RootView: View {
     @Query private var assets: [Asset]
     @Query(sort: \ShelfCategory.createdAt) private var categories: [ShelfCategory]
 
+    /// Backfill runs when previews turn on, so this tracks the edge, not the level.
+    @State private var linkPreviewsWereEnabled = LinkPreviewService.isEnabled
+
     private var actions: LibraryActions { LibraryActions(context: context, app: app) }
 
     private var selectedAssets: [Asset] {
         assets.filter { app.selectedAssetIDs.contains($0.id) }
     }
 
-    /// New items land in the category being viewed, otherwise in Inbox.
+    /// New items land in the category being viewed, otherwise unfiled.
     private var importDestination: ShelfCategory? {
         guard case .category(let id) = app.selection else { return nil }
         return categories.first { $0.id == id }
     }
 
     var body: some View {
+        presenting
+    }
+
+    // MARK: Shell
+
+    private var shell: some View {
         @Bindable var app = app
 
-        NavigationSplitView(columnVisibility: $app.columnVisibility) {
+        return NavigationSplitView(columnVisibility: $app.columnVisibility) {
             LibrarySidebar()
                 .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
@@ -43,77 +55,102 @@ struct RootView: View {
         .searchable(text: $app.searchText, prompt: "Search Shelf")
         .shelfAnimation(Motion.smooth, value: app.inspectorPresented)
         .focusedSceneValue(\.libraryActions, actions)
-        .onKeyPress(.space) {
-            guard let first = selectedAssets.first else { return .ignored }
-            actions.quickLook(first)
-            return .handled
-        }
-        .onKeyPress(.return) {
-            guard let first = selectedAssets.first else { return .ignored }
-            actions.open(first)
-            return .handled
-        }
-        .onKeyPress(.delete) {
-            guard !selectedAssets.isEmpty else { return .ignored }
-            app.isConfirmingRemoval = true
-            return .handled
-        }
-        .confirmationDialog(
-            removalTitle,
-            isPresented: $app.isConfirmingRemoval
-        ) {
-            Button("Remove from Shelf", role: .destructive) {
-                actions.remove(selectedAssets)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("The original files stay where they are.")
-        }
-        .sheet(isPresented: $app.isPresentingAddLink) {
-            AddLinkSheet(actions: actions, defaultCategory: importDestination)
-        }
-        .sheet(
-            isPresented: Binding(
-                get: { app.iconPickerCategoryID != nil },
-                set: { if !$0 { app.iconPickerCategoryID = nil } }
-            )
-        ) {
-            if let id = app.iconPickerCategoryID,
-               let category = categories.first(where: { $0.id == id }) {
-                SymbolPickerSheet(category: category, actions: actions)
-            }
-        }
-        .task {
-            actions.seedDefaultCategoriesIfNeeded()
-            selectFirstAssetIfNeeded()
-            await actions.backfillLinkPreviews()
-        }
-        .onChange(of: assets.count) { _, _ in
-            selectFirstAssetIfNeeded()
-        }
-        .fileImporter(
-            isPresented: $app.isPresentingImport,
-            allowedContentTypes: ItemKind.fileBacked.flatMap(\.contentTypes),
-            allowsMultipleSelection: true
-        ) { result in
-            handleImport(result)
-        }
-        .dropDestination(for: URL.self) { urls, _ in
-            Task { await actions.importFiles(urls, into: importDestination) }
-            return true
-        }
-        .alert(
-            "Import Failed",
-            isPresented: Binding(
-                get: { app.importError != nil },
-                set: { if !$0 { app.importError = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) { app.importError = nil }
-        } message: {
-            Text(app.importError ?? "")
-        }
     }
+
+    // MARK: Keyboard
+
+    private var interacting: some View {
+        @Bindable var app = app
+
+        return shell
+            .onKeyPress(.space) {
+                guard let first = selectedAssets.first else { return .ignored }
+                actions.quickLook(first)
+                return .handled
+            }
+            .onKeyPress(.return) {
+                guard let first = selectedAssets.first else { return .ignored }
+                actions.open(first)
+                return .handled
+            }
+            .onKeyPress(.delete) {
+                guard !selectedAssets.isEmpty else { return .ignored }
+                app.isConfirmingRemoval = true
+                return .handled
+            }
+            .confirmationDialog(removalTitle, isPresented: $app.isConfirmingRemoval) {
+                Button("Remove from Shelf", role: .destructive) {
+                    actions.remove(selectedAssets)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("The original files stay where they are.")
+            }
+    }
+
+    // MARK: Sheets, import, lifecycle
+
+    private var presenting: some View {
+        @Bindable var app = app
+
+        return interacting
+            .sheet(isPresented: $app.isPresentingAddLink) {
+                AddLinkSheet(actions: actions, defaultCategory: importDestination)
+            }
+            .sheet(
+                isPresented: Binding(
+                    get: { app.iconPickerCategoryID != nil },
+                    set: { if !$0 { app.iconPickerCategoryID = nil } }
+                )
+            ) {
+                if let id = app.iconPickerCategoryID,
+                   let category = categories.first(where: { $0.id == id }) {
+                    SymbolPickerSheet(category: category, actions: actions)
+                }
+            }
+            .task {
+                actions.seedDefaultCategoriesIfNeeded()
+                selectFirstAssetIfNeeded()
+                await actions.backfillLinkPreviews()
+            }
+            .onChange(of: assets.count) { _, _ in
+                selectFirstAssetIfNeeded()
+            }
+            // UserDefaults is the only channel between the Settings scene and this
+            // window, so the toggle flipping on is observed here and art fetches
+            // right away instead of waiting for the next launch.
+            .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
+                let enabled = LinkPreviewService.isEnabled
+                guard enabled != linkPreviewsWereEnabled else { return }
+                linkPreviewsWereEnabled = enabled
+                guard enabled else { return }
+                Task { await actions.backfillLinkPreviews() }
+            }
+            .fileImporter(
+                isPresented: $app.isPresentingImport,
+                allowedContentTypes: ItemKind.fileBacked.flatMap(\.contentTypes),
+                allowsMultipleSelection: true
+            ) { result in
+                handleImport(result)
+            }
+            .dropDestination(for: URL.self) { urls, _ in
+                Task { await actions.importFiles(urls, into: importDestination) }
+                return true
+            }
+            .alert(
+                "Import Failed",
+                isPresented: Binding(
+                    get: { app.importError != nil },
+                    set: { if !$0 { app.importError = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) { app.importError = nil }
+            } message: {
+                Text(app.importError ?? "")
+            }
+    }
+
+    // MARK: Helpers
 
     private var removalTitle: String {
         selectedAssets.count == 1

@@ -103,6 +103,23 @@ struct LibraryActions {
         try? context.save()
     }
 
+    /// Refetches one link's art and title on demand. Enables nothing: with the
+    /// previews toggle off this quietly does nothing, same as everywhere else.
+    func fetchLinkPreview(_ asset: Asset) async {
+        guard asset.isLink, let url = asset.linkURL,
+              let preview = await LinkPreviewService.fetch(for: url)
+        else { return }
+
+        if let imageData = preview.imageData {
+            ThumbnailCache.store(imageData, id: asset.id)
+            asset.thumbnailRevision += 1
+        }
+        if let title = preview.title, asset.name == asset.linkDomain {
+            asset.name = title
+        }
+        try? context.save()
+    }
+
     /// Fetches Open Graph art for links that have none, covering links that were
     /// added while previews were off. Runs at launch, does nothing when the
     /// toggle is off or every link already has art.

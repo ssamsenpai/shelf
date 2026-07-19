@@ -129,13 +129,15 @@ struct InspectorPane: View {
                 actionLabel("Copy", symbol: "doc.on.doc")
             }
 
-            Button {
-                actions.revealInFinder(asset)
-            } label: {
-                actionLabel(nil, symbol: "folder")
+            if !asset.isLink {
+                Button {
+                    actions.revealInFinder(asset)
+                } label: {
+                    actionLabel(nil, symbol: "folder")
+                }
+                .help("Reveal in Finder")
+                .accessibilityLabel("Reveal in Finder")
             }
-            .help("Reveal in Finder")
-            .accessibilityLabel("Reveal in Finder")
         }
         .buttonStyle(.shelfSecondary)
     }
