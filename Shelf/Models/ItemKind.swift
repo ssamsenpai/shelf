@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
     case image
     case svg
+    case video
     case font
     case design
     case link
@@ -18,6 +19,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
         switch self {
         case .image: "Images"
         case .svg: "SVG"
+        case .video: "Videos"
         case .font: "Fonts"
         case .design: "Design Files"
         case .link: "Links"
@@ -30,6 +32,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
         switch self {
         case .image: "photo"
         case .svg: "bezier.path"
+        case .video: "film"
         case .font: "textformat"
         case .design: "square.on.square.dashed"
         case .link: "link"
@@ -40,7 +43,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
 
     /// Kinds that come from a file on disk. Links, notes, and palettes are authored
     /// inside Shelf, so they never appear in a file picker.
-    static var fileBacked: [ItemKind] { [.image, .svg, .font, .design] }
+    static var fileBacked: [ItemKind] { [.image, .svg, .video, .font, .design] }
 
     /// Content types the picker and the Downloads scanner accept for this kind.
     var contentTypes: [UTType] {
@@ -49,6 +52,8 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
             [.png, .jpeg, .heic, .heif, .gif, .tiff, .bmp, .webP, .image]
         case .svg:
             [.svg]
+        case .video:
+            [.mpeg4Movie, .quickTimeMovie, .movie]
         case .font:
             [.font, UTType(filenameExtension: "ttf"), UTType(filenameExtension: "otf"),
              UTType(filenameExtension: "woff"), UTType(filenameExtension: "woff2")]
@@ -71,6 +76,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
     /// Best matching kind for a file, or nil if Shelf does not collect it.
     static func matching(_ type: UTType) -> ItemKind? {
         if type.conforms(to: .svg) { return .svg }
+        if type.conforms(to: .movie) { return .video }
         if type.conforms(to: .font) { return .font }
         for kind in [ItemKind.design, .image] where kind.contentTypes.contains(where: type.conforms(to:)) {
             return kind

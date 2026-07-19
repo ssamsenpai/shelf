@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -25,14 +26,14 @@ enum ImportService {
     static func prepare(urls: [URL]) async -> [ImportedFile] {
         var results: [ImportedFile] = []
         for url in urls {
-            if let file = prepare(url: url) {
+            if let file = await prepare(url: url) {
                 results.append(file)
             }
         }
         return results
     }
 
-    private static func prepare(url: URL) -> ImportedFile? {
+    private static func prepare(url: URL) async -> ImportedFile? {
         guard !ImportExclusions.excludes(url) else { return nil }
 
         let scoped = url.startAccessingSecurityScopedResource()
@@ -50,7 +51,11 @@ enum ImportService {
             return nil
         }
 
-        let dimensions = pixelDimensions(of: url)
+        let dimensions: (width: Int, height: Int)? = if kind == .video {
+            await videoDimensions(of: url)
+        } else {
+            pixelDimensions(of: url)
+        }
         let colors = (kind == .image || kind == .svg) ? ColorExtractor.dominantColors(of: url) : []
 
         return ImportedFile(
@@ -65,6 +70,20 @@ enum ImportService {
             modifiedAt: values?.contentModificationDate,
             dominantColors: colors
         )
+    }
+
+    /// CGImageSource cannot read movies, so their frame size comes from the video
+    /// track. The preferred transform matters: a portrait phone clip stores a
+    /// rotated track, and ignoring it would swap width and height.
+    private static func videoDimensions(of url: URL) async -> (width: Int, height: Int)? {
+        let asset = AVURLAsset(url: url)
+        guard let track = try? await asset.loadTracks(withMediaType: .video).first,
+              let size = try? await track.load(.naturalSize),
+              let transform = try? await track.load(.preferredTransform)
+        else { return nil }
+
+        let rect = CGRect(origin: .zero, size: size).applying(transform)
+        return (Int(abs(rect.width)), Int(abs(rect.height)))
     }
 
     private static func pixelDimensions(of url: URL) -> (width: Int, height: Int)? {
