@@ -54,6 +54,7 @@ struct LibraryToolbar: ToolbarContent {
 
             Menu {
                 Button("Add Files...") { app.requestImport() }
+                Button("Add Dev Project...") { app.isPresentingProjectImport = true }
                 Button("Add Link...") { app.isPresentingAddLink = true }
             } label: {
                 Label("Add", systemImage: "plus")

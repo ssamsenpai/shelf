@@ -7,6 +7,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
     case image
     case svg
     case video
+    case project
     case font
     case design
     case link
@@ -20,6 +21,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
         case .image: "Images"
         case .svg: "SVG"
         case .video: "Videos"
+        case .project: "Dev Projects"
         case .font: "Fonts"
         case .design: "Design Files"
         case .link: "Links"
@@ -33,6 +35,7 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
         case .image: "photo"
         case .svg: "bezier.path"
         case .video: "film"
+        case .project: "chevron.left.forwardslash.chevron.right"
         case .font: "textformat"
         case .design: "square.on.square.dashed"
         case .link: "link"
@@ -54,6 +57,8 @@ enum ItemKind: String, CaseIterable, Identifiable, Codable, Sendable {
             [.svg]
         case .video:
             [.mpeg4Movie, .quickTimeMovie, .movie]
+        case .project:
+            [.folder]
         case .font:
             [.font, UTType(filenameExtension: "ttf"), UTType(filenameExtension: "otf"),
              UTType(filenameExtension: "woff"), UTType(filenameExtension: "woff2")]

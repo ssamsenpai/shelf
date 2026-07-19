@@ -21,6 +21,11 @@ final class Asset {
     /// image arriving. Thumbnail views key on it to reload.
     var thumbnailRevision: Int = 0
 
+    /// Dev project metadata, gathered by a shallow scan at import.
+    var projectLanguages: [String] = []
+    var projectFileCount: Int = 0
+    var projectIsGit: Bool = false
+
     var fileSize: Int64 = 0
     var pixelWidth: Int = 0
     var pixelHeight: Int = 0
@@ -69,6 +74,7 @@ final class Asset {
     }
 
     var isLink: Bool { kind == .link }
+    var isProject: Bool { kind == .project }
 
     var linkURL: URL? {
         linkURLString.isEmpty ? nil : URL(string: linkURLString)
@@ -106,6 +112,12 @@ final class Asset {
     /// dimensions when we have them, else size.
     var detailText: String? {
         if isLink { return linkDomain }
+        if isProject {
+            var parts: [String] = []
+            if let language = projectLanguages.first { parts.append(language) }
+            if projectFileCount > 0 { parts.append("\(projectFileCount) files") }
+            return parts.isEmpty ? nil : parts.joined(separator: ", ")
+        }
         return dimensionsText ?? fileSizeText
     }
 }

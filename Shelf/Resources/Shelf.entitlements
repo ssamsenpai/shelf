@@ -14,5 +14,9 @@
 	     Settings toggle, which ships off, so nothing leaves the device by default. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Lets Shelf ask Terminal to open a dev project in the Claude Code CLI.
+	     macOS shows a consent prompt on first use. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
 </dict>
 </plist>

@@ -10,8 +10,13 @@ struct AssetContextMenu: View {
     @Query(sort: \ShelfCategory.createdAt) private var categories: [ShelfCategory]
 
     var body: some View {
-        Button("Open") { actions.open(asset) }
-        Button("Quick Look") { actions.quickLook(asset) }
+        if asset.isProject {
+            Button("Open in VS Code") { actions.openInVSCode(asset) }
+            Button("Open in Claude Code") { actions.openInClaudeCode(asset) }
+        } else {
+            Button("Open") { actions.open(asset) }
+            Button("Quick Look") { actions.quickLook(asset) }
+        }
         if asset.isLink {
             Button("Fetch Preview") {
                 Task { await actions.fetchLinkPreview(asset) }

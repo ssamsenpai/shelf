@@ -110,6 +110,7 @@ struct RootView: View {
             }
             .task {
                 actions.seedDefaultCategoriesIfNeeded()
+                actions.seedDevProjectsCategoryIfNeeded()
                 selectFirstAssetIfNeeded()
                 await actions.backfillLinkPreviews()
             }
@@ -129,6 +130,13 @@ struct RootView: View {
             .fileImporter(
                 isPresented: $app.isPresentingImport,
                 allowedContentTypes: ItemKind.fileBacked.flatMap(\.contentTypes),
+                allowsMultipleSelection: true
+            ) { result in
+                handleImport(result)
+            }
+            .fileImporter(
+                isPresented: $app.isPresentingProjectImport,
+                allowedContentTypes: [.folder],
                 allowsMultipleSelection: true
             ) { result in
                 handleImport(result)

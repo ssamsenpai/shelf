@@ -117,16 +117,34 @@ struct InspectorPane: View {
     /// the window tint would otherwise fill them solid blue.
     private func actions(for asset: Asset) -> some View {
         HStack(spacing: Spacing.s) {
-            Button {
-                actions.open(asset)
-            } label: {
-                actionLabel("Open", symbol: "arrow.up.forward.app")
+            if asset.isProject {
+                Button {
+                    actions.openInVSCode(asset)
+                } label: {
+                    iconLabel("VS Code", image: "VSCodeIcon")
+                }
+                .help("Open in Visual Studio Code")
+
+                Button {
+                    actions.openInClaudeCode(asset)
+                } label: {
+                    iconLabel("Claude", image: "ClaudeCodeIcon")
+                }
+                .help("Open in the Claude Code CLI")
+            } else {
+                Button {
+                    actions.open(asset)
+                } label: {
+                    actionLabel("Open", symbol: "arrow.up.forward.app")
+                }
             }
 
-            Button {
-                actions.copy(asset)
-            } label: {
-                actionLabel("Copy", symbol: "doc.on.doc")
+            if !asset.isProject {
+                Button {
+                    actions.copy(asset)
+                } label: {
+                    actionLabel("Copy", symbol: "doc.on.doc")
+                }
             }
 
             if !asset.isLink {
@@ -142,6 +160,18 @@ struct InspectorPane: View {
         .buttonStyle(.shelfSecondary)
     }
 
+    /// A bundled app icon beside a short label, matching actionLabel's geometry.
+    private func iconLabel(_ title: String, image: String) -> some View {
+        HStack(spacing: Spacing.xs) {
+            Image(image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 15, height: 15)
+            Text(title)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private func actionLabel(_ title: String?, symbol: String) -> some View {
         HStack(spacing: Spacing.xs) {
             Image(systemName: symbol)
@@ -154,7 +184,16 @@ struct InspectorPane: View {
 
     private func metadata(for asset: Asset) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
-            row("Kind", asset.kind.title)
+            row("Kind", asset.isProject ? "Dev Project" : asset.kind.title)
+            if asset.isProject {
+                if !asset.projectLanguages.isEmpty {
+                    row("Languages", asset.projectLanguages.joined(separator: ", "))
+                }
+                if asset.projectFileCount > 0 {
+                    row("Files", "\(asset.projectFileCount)")
+                }
+                row("Git", asset.projectIsGit ? "Yes" : "No")
+            }
             if !asset.fileExtension.isEmpty {
                 row("Format", asset.fileExtension.uppercased())
             }

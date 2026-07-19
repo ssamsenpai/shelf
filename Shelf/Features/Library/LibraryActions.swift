@@ -51,6 +51,23 @@ struct LibraryActions {
         }
     }
 
+    /// Existing libraries were seeded before dev projects existed, so this adds
+    /// that one category once. Deleting it afterwards is respected.
+    func seedDevProjectsCategoryIfNeeded() {
+        let defaults = UserDefaults.standard
+        let key = "didSeedDevProjectsCategory"
+        guard !defaults.bool(forKey: key) else { return }
+        defaults.set(true, forKey: key)
+
+        let existing = (try? context.fetch(FetchDescriptor<ShelfCategory>())) ?? []
+        guard !existing.contains(where: { $0.name == "Dev Projects" }) else { return }
+
+        let category = ShelfCategory(name: "Dev Projects")
+        category.symbolName = "chevron.left.forwardslash.chevron.right"
+        context.insert(category)
+        try? context.save()
+    }
+
     /// Adds a link. The Open Graph fetch only happens when the user has turned link
     /// previews on, otherwise the card falls back to the domain and title.
     func addLink(_ urlString: String, title: String?, into category: ShelfCategory?) async {
@@ -188,6 +205,9 @@ struct LibraryActions {
                 dominantColors: file.dominantColors,
                 category: category
             )
+            asset.projectLanguages = file.projectLanguages
+            asset.projectFileCount = file.projectFileCount
+            asset.projectIsGit = file.projectIsGit
             context.insert(asset)
         }
         try? context.save()
@@ -214,6 +234,46 @@ struct LibraryActions {
         }
         try? context.save()
         app.selectedAssetIDs.removeAll()
+    }
+
+    /// Opens a dev project folder in Visual Studio Code.
+    func openInVSCode(_ asset: Asset) {
+        guard let appURL = NSWorkspace.shared.urlForApplication(
+            withBundleIdentifier: "com.microsoft.VSCode"
+        ) else {
+            app.importError = "Visual Studio Code is not installed."
+            return
+        }
+
+        handingOff(asset) { url in
+            NSWorkspace.shared.open(
+                [url], withApplicationAt: appURL,
+                configuration: NSWorkspace.OpenConfiguration()
+            )
+        }
+    }
+
+    /// Opens Terminal in the project folder and starts the Claude Code CLI.
+    /// Scripting Terminal needs the automation entitlement, and macOS asks the
+    /// user for consent the first time.
+    func openInClaudeCode(_ asset: Asset) {
+        handingOff(asset) { url in
+            let path = url.path(percentEncoded: false)
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            let source = """
+            tell application "Terminal"
+                activate
+                do script "cd \\"\(path)\\" && claude"
+            end tell
+            """
+
+            var error: NSDictionary?
+            NSAppleScript(source: source)?.executeAndReturnError(&error)
+            if error != nil {
+                app.importError = "Could not open Terminal. Check Automation permissions in System Settings."
+            }
+        }
     }
 
     func revealInFinder(_ asset: Asset) {

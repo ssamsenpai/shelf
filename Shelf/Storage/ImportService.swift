@@ -18,6 +18,9 @@ struct ImportedFile: Sendable {
     let createdAt: Date?
     let modifiedAt: Date?
     let dominantColors: [String]
+    var projectLanguages: [String] = []
+    var projectFileCount: Int = 0
+    var projectIsGit: Bool = false
 }
 
 /// Reads metadata and mints bookmarks. Runs off the main actor. Copies nothing.
@@ -43,6 +46,12 @@ enum ImportService {
             .contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey
         ]
         let values = try? url.resourceValues(forKeys: keys)
+
+        // A plain directory is a dev project. Packages such as Sketch documents
+        // conform to .package, not .folder, so they stay regular files.
+        if values?.contentType?.conforms(to: .folder) == true {
+            return prepareProject(url: url, values: values)
+        }
 
         guard let type = values?.contentType, let kind = ItemKind.matching(type) else {
             return nil
@@ -70,6 +79,96 @@ enum ImportService {
             modifiedAt: values?.contentModificationDate,
             dominantColors: colors
         )
+    }
+
+    // MARK: Dev projects
+
+    /// References a project folder. Only the folder: the scan below reads names and
+    /// counts for metadata, never file contents.
+    private static func prepareProject(url: URL, values: URLResourceValues?) -> ImportedFile? {
+        guard let bookmark = try? BookmarkStore.makeBookmark(for: url) else { return nil }
+
+        let scan = scanProject(at: url)
+
+        return ImportedFile(
+            name: url.lastPathComponent,
+            kind: .project,
+            bookmark: bookmark,
+            originalPath: url.path(percentEncoded: false),
+            fileSize: 0,
+            pixelWidth: 0,
+            pixelHeight: 0,
+            createdAt: values?.creationDate,
+            modifiedAt: values?.contentModificationDate,
+            dominantColors: [],
+            projectLanguages: scan.languages,
+            projectFileCount: scan.fileCount,
+            projectIsGit: scan.isGit
+        )
+    }
+
+    private static let dependencyDirectories: Set<String> = [
+        "node_modules", ".git", ".build", "build", "dist", "Pods", ".venv",
+        "venv", "DerivedData", "vendor", "target", ".next", ".svelte-kit"
+    ]
+
+    private static let languageByExtension: [String: String] = [
+        "swift": "Swift", "ts": "TypeScript", "tsx": "TypeScript",
+        "js": "JavaScript", "jsx": "JavaScript", "py": "Python", "rb": "Ruby",
+        "go": "Go", "rs": "Rust", "java": "Java", "kt": "Kotlin", "c": "C",
+        "h": "C", "cpp": "C++", "hpp": "C++", "cs": "C#", "php": "PHP",
+        "vue": "Vue", "dart": "Dart", "html": "HTML", "css": "CSS",
+        "scss": "CSS", "m": "Objective-C"
+    ]
+
+    /// Counts files and buckets source extensions, skipping dependency folders.
+    /// Capped so a giant monorepo cannot stall an import.
+    private static func scanProject(
+        at url: URL
+    ) -> (languages: [String], fileCount: Int, isGit: Bool) {
+        let isGit = FileManager.default.fileExists(
+            atPath: url.appending(path: ".git").path
+        )
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        ) else {
+            return ([], 0, isGit)
+        }
+
+        var fileCount = 0
+        var histogram: [String: Int] = [:]
+        var visited = 0
+
+        for case let file as URL in enumerator {
+            visited += 1
+            if visited > 5000 { break }
+
+            let values = try? file.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+
+            if values?.isDirectory == true {
+                if dependencyDirectories.contains(file.lastPathComponent) {
+                    enumerator.skipDescendants()
+                }
+                continue
+            }
+
+            guard values?.isRegularFile == true else { continue }
+            fileCount += 1
+
+            if let language = languageByExtension[file.pathExtension.lowercased()] {
+                histogram[language, default: 0] += 1
+            }
+        }
+
+        let languages = histogram
+            .sorted { $0.value > $1.value }
+            .prefix(3)
+            .map(\.key)
+
+        return (Array(languages), fileCount, isGit)
     }
 
     /// CGImageSource cannot read movies, so their frame size comes from the video
