@@ -3,17 +3,18 @@ import SwiftUI
 import ShelfUI
 
 /// Window chrome: a glass capsule holding the traffic lights, and a glass sidebar
-/// toggle beside it, both nudged clear of the sidebar edge.
+/// toggle beside it.
 ///
-/// The buttons belong to AppKit's titlebar, not to any SwiftUI view, so everything
-/// here is installed there and constrained to the buttons themselves. Positioning
-/// from SwiftUI would mean guessing at titlebar metrics, which is what put the
-/// capsule below the lights the first time around.
+/// The buttons belong to AppKit's titlebar, not to any SwiftUI view, so both pieces
+/// are installed there and constrained to the buttons themselves. The buttons stay
+/// where AppKit puts them: overriding their frames drifts across layout passes.
 ///
-/// The buttons are deliberately left where AppKit puts them. Overriding their frames
-/// drifts: AppKit restores them on every titlebar layout, and any recapture of the
-/// original positions happens against already moved buttons, so the three end up at
-/// different offsets from each other. Clearance comes from the capsule padding.
+/// The close button sits nearly flush with the window corner, so centering a taller
+/// capsule on it would push past the top and left edges and clip flat. Margins from
+/// the window edges are required constraints; hugging the buttons is optional.
+///
+/// In fullscreen the system hides the titlebar, so the glass hides with it rather
+/// than floating over content.
 struct TrafficLightGlass: NSViewRepresentable {
     let app: AppState
 
@@ -23,17 +24,22 @@ struct TrafficLightGlass: NSViewRepresentable {
     private let capsuleInset: CGFloat = 18
     private let clusterHeight: CGFloat = 34
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func makeNSView(context: Context) -> NSView {
         let probe = NSView(frame: .zero)
-        DispatchQueue.main.async { install(from: probe) }
+        // The window is not attached yet at make time.
+        DispatchQueue.main.async { install(from: probe, coordinator: context.coordinator) }
         return probe
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async { install(from: nsView) }
+        DispatchQueue.main.async { install(from: nsView, coordinator: context.coordinator) }
     }
 
-    private func install(from view: NSView) {
+    private func install(from view: NSView, coordinator: Coordinator) {
         guard let window = view.window,
               let close = window.standardWindowButton(.closeButton),
               let zoom = window.standardWindowButton(.zoomButton),
@@ -56,21 +62,26 @@ struct TrafficLightGlass: NSViewRepresentable {
         toggle.translatesAutoresizingMaskIntoConstraints = false
         titlebar.addSubview(toggle, positioned: .above, relativeTo: nil)
 
-        // The close button sits only a few points from the window edge, so a
-        // symmetric inset would push the capsule past the corner and clip it flat.
-        // The margin from the window edge is required, the symmetric look optional.
-        let symmetricLeading = capsule.leadingAnchor.constraint(
+        // Staying inside the window is required. Hugging the buttons is preferred,
+        // and gives way when the buttons sit too near the corner.
+        let hugLeading = capsule.leadingAnchor.constraint(
             equalTo: close.leadingAnchor, constant: -capsuleInset
         )
-        symmetricLeading.priority = .defaultHigh
+        hugLeading.priority = .defaultHigh
+
+        let hugCenterY = capsule.centerYAnchor.constraint(equalTo: close.centerYAnchor)
+        hugCenterY.priority = .defaultHigh
 
         NSLayoutConstraint.activate([
             capsule.leadingAnchor.constraint(
-                greaterThanOrEqualTo: titlebar.leadingAnchor, constant: Spacing.s
+                greaterThanOrEqualTo: titlebar.leadingAnchor, constant: Spacing.m
             ),
-            symmetricLeading,
+            capsule.topAnchor.constraint(
+                greaterThanOrEqualTo: titlebar.topAnchor, constant: Spacing.xs
+            ),
+            hugLeading,
+            hugCenterY,
             capsule.trailingAnchor.constraint(equalTo: zoom.trailingAnchor, constant: capsuleInset),
-            capsule.centerYAnchor.constraint(equalTo: close.centerYAnchor),
             capsule.heightAnchor.constraint(equalToConstant: clusterHeight),
 
             toggle.leadingAnchor.constraint(equalTo: capsule.trailingAnchor, constant: Spacing.s),
@@ -78,6 +89,64 @@ struct TrafficLightGlass: NSViewRepresentable {
             toggle.widthAnchor.constraint(equalToConstant: clusterHeight),
             toggle.heightAnchor.constraint(equalToConstant: clusterHeight)
         ])
+
+        coordinator.watch(window: window, capsule: capsule, toggle: toggle)
+    }
+
+    /// Hides the glass while the window is fullscreen, where the system hides the
+    /// titlebar and anything left in it would float over content.
+    @MainActor
+    final class Coordinator: NSObject {
+        /// Boxed so the nonisolated deinit can release them: a main actor isolated
+        /// class cannot touch non sendable stored state on the way out.
+        private let observers = ObserverBox()
+        private weak var window: NSWindow?
+        private weak var capsule: NSView?
+        private weak var toggle: NSView?
+
+        func watch(window: NSWindow, capsule: NSView, toggle: NSView) {
+            self.capsule = capsule
+            self.toggle = toggle
+
+            setHidden(window.styleMask.contains(.fullScreen))
+
+            guard self.window !== window else { return }
+            self.window = window
+
+            let center = NotificationCenter.default
+            let pairs: [(Notification.Name, Bool)] = [
+                (NSWindow.willEnterFullScreenNotification, true),
+                (NSWindow.willExitFullScreenNotification, false)
+            ]
+            for (name, hidden) in pairs {
+                let token = center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.setHidden(hidden) }
+                }
+                observers.tokens.append(token)
+            }
+        }
+
+        private func setHidden(_ hidden: Bool) {
+            capsule?.isHidden = hidden
+            toggle?.isHidden = hidden
+        }
+
+        deinit {
+            observers.removeAll()
+        }
+    }
+
+    /// Holds notification tokens so they can be released from a nonisolated deinit.
+    private final class ObserverBox: @unchecked Sendable {
+        var tokens: [any NSObjectProtocol] = []
+
+        func removeAll() {
+            let center = NotificationCenter.default
+            for token in tokens {
+                center.removeObserver(token)
+            }
+            tokens.removeAll()
+        }
     }
 
     private struct GlassCapsule: View {
