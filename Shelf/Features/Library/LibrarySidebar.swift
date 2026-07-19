@@ -131,9 +131,9 @@ struct SidebarRow: View {
         Button(action: action) {
             HStack(spacing: Spacing.m) {
                 Image(systemName: symbol)
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
-                    .frame(width: 20, alignment: .center)
+                    .frame(width: 24, alignment: .center)
 
                 Text(title)
                     .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
@@ -197,9 +197,9 @@ private struct CategorySidebarRow: View {
         } label: {
             HStack(spacing: Spacing.m) {
                 Image(systemName: category.symbolName)
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
-                    .frame(width: 20, alignment: .center)
+                    .frame(width: 24, alignment: .center)
 
                 if isRenaming {
                     TextField("Name", text: $category.name)
