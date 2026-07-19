@@ -56,7 +56,7 @@ struct LibrarySidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .contentMargins(.top, Spacing.l, for: .scrollContent)
+        .contentMargins(.top, Spacing.xxl, for: .scrollContent)
         .focusable()
         .focusEffectDisabled()
         .onKeyPress(.upArrow) { moveSelection(by: -1) }
