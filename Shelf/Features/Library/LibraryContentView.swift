@@ -88,23 +88,23 @@ struct LibraryContentView: View {
                         }
                     }
                     .padding(Spacing.xl)
-                    // Clears the scrim and the floating switcher.
-                    .padding(.bottom, Spacing.xxl * 3)
                 }
             }
         }
         .background(Color.shelfContent)
-        // The system's Liquid Glass edge treatment, not a hand rolled blur: content
-        // dissolves under the floating switcher the way it does under toolbars.
+        // The system's Liquid Glass edge treatment, not a hand rolled blur. The
+        // switcher rides in the safe area bar, which is what makes the soft edge
+        // render beneath it: an overlay would leave the bottom edge uninsetted and
+        // the effect invisible.
         .scrollEdgeEffectStyle(.soft, for: .bottom)
-        .overlay(alignment: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             GlassSegmentedControl(
                 selection: $app.viewMode,
                 options: ViewMode.selectable.map {
                     .init(value: $0, symbol: $0.symbol, title: $0.title)
                 }
             )
-            .padding(.bottom, Spacing.xl)
+            .padding(.vertical, Spacing.s)
         }
         .navigationTitle(app.title(for: currentCategory))
         .quickLookPreview($app.quickLookURL)

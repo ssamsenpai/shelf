@@ -56,7 +56,6 @@ struct LibrarySidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .toolbar(removing: .sidebarToggle)
         .contentMargins(.top, Spacing.l, for: .scrollContent)
         .focusable()
         .focusEffectDisabled()

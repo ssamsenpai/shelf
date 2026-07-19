@@ -2,27 +2,23 @@ import AppKit
 import SwiftUI
 import ShelfUI
 
-/// Window chrome: a glass capsule holding the traffic lights, and a glass sidebar
-/// toggle beside it.
+/// A glass capsule behind the window's traffic lights.
 ///
-/// The buttons belong to AppKit's titlebar, not to any SwiftUI view, so both pieces
-/// are installed there and constrained to the buttons themselves. The buttons stay
+/// The buttons belong to AppKit's titlebar, not to any SwiftUI view, so the capsule
+/// is installed there and constrained to the buttons themselves. The buttons stay
 /// where AppKit puts them: overriding their frames drifts across layout passes.
 ///
-/// The close button sits nearly flush with the window corner, so centering a taller
-/// capsule on it would push past the top and left edges and clip flat. Margins from
-/// the window edges are required constraints; hugging the buttons is optional.
+/// Only the capsule lives here. The sidebar toggle is a real toolbar item, so the
+/// toolbar lays it out and the window title can never slide underneath it.
 ///
-/// In fullscreen the system hides the titlebar, so the glass hides with it rather
-/// than floating over content.
+/// In fullscreen the system hides the titlebar, so the capsule hides with it.
 struct TrafficLightGlass: NSViewRepresentable {
-    let app: AppState
 
     private static let capsuleID = NSUserInterfaceItemIdentifier("ShelfTrafficLightGlass")
-    private static let toggleID = NSUserInterfaceItemIdentifier("ShelfSidebarToggleGlass")
 
-    private let capsuleInset: CGFloat = 18
-    private let clusterHeight: CGFloat = 34
+    /// Padding around the buttons inside the capsule.
+    private let capsuleInset: CGFloat = 14
+    private let capsuleHeight: CGFloat = 34
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -46,7 +42,7 @@ struct TrafficLightGlass: NSViewRepresentable {
               let titlebar = close.superview
         else { return }
 
-        // Only ever one of each, though updateNSView runs on every layout pass.
+        // Only ever one, though updateNSView runs on every layout pass.
         guard !titlebar.subviews.contains(where: { $0.identifier == Self.capsuleID }) else {
             return
         }
@@ -57,43 +53,27 @@ struct TrafficLightGlass: NSViewRepresentable {
         // Below the buttons, so it reads as a container holding them.
         titlebar.addSubview(capsule, positioned: .below, relativeTo: close)
 
-        let toggle = NSHostingView(rootView: SidebarToggle(app: app))
-        toggle.identifier = Self.toggleID
-        toggle.translatesAutoresizingMaskIntoConstraints = false
-        titlebar.addSubview(toggle, positioned: .above, relativeTo: nil)
-
-        // Staying inside the window is required. Hugging the buttons is preferred,
-        // and gives way when the buttons sit too near the corner.
+        // Symmetric padding around the buttons is preferred. Staying off the window
+        // edge is required and wins when the buttons sit too near the corner.
         let hugLeading = capsule.leadingAnchor.constraint(
             equalTo: close.leadingAnchor, constant: -capsuleInset
         )
         hugLeading.priority = .defaultHigh
 
-        let hugCenterY = capsule.centerYAnchor.constraint(equalTo: close.centerYAnchor)
-        hugCenterY.priority = .defaultHigh
-
         NSLayoutConstraint.activate([
             capsule.leadingAnchor.constraint(
-                greaterThanOrEqualTo: titlebar.leadingAnchor, constant: Spacing.m
-            ),
-            capsule.topAnchor.constraint(
-                greaterThanOrEqualTo: titlebar.topAnchor, constant: Spacing.xs
+                greaterThanOrEqualTo: titlebar.leadingAnchor, constant: Spacing.s
             ),
             hugLeading,
-            hugCenterY,
             capsule.trailingAnchor.constraint(equalTo: zoom.trailingAnchor, constant: capsuleInset),
-            capsule.heightAnchor.constraint(equalToConstant: clusterHeight),
-
-            toggle.leadingAnchor.constraint(equalTo: capsule.trailingAnchor, constant: Spacing.s),
-            toggle.centerYAnchor.constraint(equalTo: capsule.centerYAnchor),
-            toggle.widthAnchor.constraint(equalToConstant: clusterHeight),
-            toggle.heightAnchor.constraint(equalToConstant: clusterHeight)
+            capsule.centerYAnchor.constraint(equalTo: close.centerYAnchor),
+            capsule.heightAnchor.constraint(equalToConstant: capsuleHeight)
         ])
 
-        coordinator.watch(window: window, capsule: capsule, toggle: toggle)
+        coordinator.watch(window: window, capsule: capsule)
     }
 
-    /// Hides the glass while the window is fullscreen, where the system hides the
+    /// Hides the capsule while the window is fullscreen, where the system hides the
     /// titlebar and anything left in it would float over content.
     @MainActor
     final class Coordinator: NSObject {
@@ -102,13 +82,11 @@ struct TrafficLightGlass: NSViewRepresentable {
         private let observers = ObserverBox()
         private weak var window: NSWindow?
         private weak var capsule: NSView?
-        private weak var toggle: NSView?
 
-        func watch(window: NSWindow, capsule: NSView, toggle: NSView) {
+        func watch(window: NSWindow, capsule: NSView) {
             self.capsule = capsule
-            self.toggle = toggle
 
-            setHidden(window.styleMask.contains(.fullScreen))
+            capsule.isHidden = window.styleMask.contains(.fullScreen)
 
             guard self.window !== window else { return }
             self.window = window
@@ -120,15 +98,10 @@ struct TrafficLightGlass: NSViewRepresentable {
             ]
             for (name, hidden) in pairs {
                 let token = center.addObserver(forName: name, object: window, queue: .main) { [weak self] _ in
-                    MainActor.assumeIsolated { self?.setHidden(hidden) }
+                    MainActor.assumeIsolated { self?.capsule?.isHidden = hidden }
                 }
                 observers.tokens.append(token)
             }
-        }
-
-        private func setHidden(_ hidden: Bool) {
-            capsule?.isHidden = hidden
-            toggle?.isHidden = hidden
         }
 
         deinit {
@@ -154,27 +127,6 @@ struct TrafficLightGlass: NSViewRepresentable {
             Color.clear
                 .glassEffect(.regular, in: .capsule)
                 .allowsHitTesting(false)
-        }
-    }
-
-    /// Lives beside the traffic lights rather than in the toolbar, which is why the
-    /// toolbar's own sidebar item is removed.
-    private struct SidebarToggle: View {
-        let app: AppState
-
-        var body: some View {
-            Button {
-                app.columnVisibility = app.columnVisibility == .all ? .detailOnly : .all
-            } label: {
-                Image(systemName: "sidebar.leading")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.interactive(), in: .circle)
-            .help("Hide or show the sidebar")
         }
     }
 }
