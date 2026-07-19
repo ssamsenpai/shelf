@@ -23,6 +23,15 @@ public extension Color {
             : NSColor.white.withAlphaComponent(0.95)
     })
 
+    /// Label and icon of the selected sidebar row. Slightly lighter in dark mode,
+    /// where the exact light mode blue loses contrast against the material.
+    static let shelfSidebarActive = Color(nsColor: NSColor(name: nil) { appearance in
+        let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+        return isDark
+            ? NSColor(srgbRed: 0.25, green: 0.62, blue: 1.0, alpha: 1)
+            : NSColor(srgbRed: 0.0, green: 0.447, blue: 0.969, alpha: 1)
+    })
+
     /// Sidebar selection fill. A soft white wash rather than a solid accent block,
     /// so the accent tinted label stays legible on top. Carries more opacity in
     /// light mode, where the sidebar material is already bright.

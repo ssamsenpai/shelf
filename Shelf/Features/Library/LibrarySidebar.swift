@@ -132,11 +132,11 @@ struct SidebarRow: View {
             HStack(spacing: Spacing.m) {
                 Image(systemName: symbol)
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
                     .frame(width: 20, alignment: .center)
 
                 Text(title)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
                     .lineLimit(1)
                     .truncationMode(.tail)
 
@@ -198,7 +198,7 @@ private struct CategorySidebarRow: View {
             HStack(spacing: Spacing.m) {
                 Image(systemName: category.symbolName)
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
                     .frame(width: 20, alignment: .center)
 
                 if isRenaming {
