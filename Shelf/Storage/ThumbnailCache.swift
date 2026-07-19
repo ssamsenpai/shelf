@@ -48,6 +48,10 @@ enum ThumbnailCache {
         return generated
     }
 
+    static func hasCached(id: UUID) -> Bool {
+        FileManager.default.fileExists(atPath: cacheURL(for: id).path)
+    }
+
     static func removeCached(id: UUID) {
         try? FileManager.default.removeItem(at: cacheURL(for: id))
     }

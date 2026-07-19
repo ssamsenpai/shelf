@@ -84,6 +84,9 @@ struct LibraryActions {
         }
         if let imageData = preview.imageData {
             ThumbnailCache.store(imageData, id: asset.id)
+            // The id alone never changes, so without this the tile that already
+            // rendered a placeholder would never ask the cache again.
+            asset.thumbnailRevision += 1
         }
         try? context.save()
     }
@@ -97,6 +100,32 @@ struct LibraryActions {
     func setAsCover(_ asset: Asset) {
         guard let category = asset.category else { return }
         category.coverAssetID = asset.id
+        try? context.save()
+    }
+
+    /// Fetches Open Graph art for links that have none, covering links that were
+    /// added while previews were off. Runs at launch, does nothing when the
+    /// toggle is off or every link already has art.
+    func backfillLinkPreviews() async {
+        guard LinkPreviewService.isEnabled else { return }
+
+        let descriptor = FetchDescriptor<Asset>()
+        let links = ((try? context.fetch(descriptor)) ?? [])
+            .filter { $0.isLink && !ThumbnailCache.hasCached(id: $0.id) }
+
+        for link in links {
+            guard let url = link.linkURL,
+                  let preview = await LinkPreviewService.fetch(for: url)
+            else { continue }
+
+            if let imageData = preview.imageData {
+                ThumbnailCache.store(imageData, id: link.id)
+                link.thumbnailRevision += 1
+            }
+            if let title = preview.title, link.name == link.linkDomain {
+                link.name = title
+            }
+        }
         try? context.save()
     }
 

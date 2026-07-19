@@ -17,6 +17,9 @@ final class Asset {
     var originalPath: String = ""
     /// Set for links, which have no file and therefore no bookmark.
     var linkURLString: String = ""
+    /// Bumped when the cached preview changes after import, such as an Open Graph
+    /// image arriving. Thumbnail views key on it to reload.
+    var thumbnailRevision: Int = 0
 
     var fileSize: Int64 = 0
     var pixelWidth: Int = 0

@@ -26,7 +26,7 @@ struct CategoryStackTile: View {
     /// Reloads when the newest few items change, so the stack keeps up with edits
     /// without reloading on every unrelated redraw.
     private var previewKey: String {
-        newestAssets.map(\.id.uuidString).joined()
+        newestAssets.map { "\($0.id)-\($0.thumbnailRevision)" }.joined()
     }
 
     /// The chosen cover fronts the stack, then the newest of the rest behind it.

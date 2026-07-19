@@ -18,7 +18,7 @@ struct AssetThumbnail: View {
                 Color.clear
             }
         }
-        .task(id: asset.id) {
+        .task(id: "\(asset.id)-\(asset.thumbnailRevision)") {
             await load()
         }
     }
@@ -62,7 +62,7 @@ struct ThumbnailProvider<Content: View>: View {
 
     var body: some View {
         content(loaded)
-            .task(id: asset.id) {
+            .task(id: "\(asset.id)-\(asset.thumbnailRevision)") {
                 let bookmark = asset.bookmark
                 guard let data = await ThumbnailCache.thumbnailData(id: asset.id, bookmark: bookmark),
                       let nsImage = NSImage(data: data)

@@ -86,6 +86,7 @@ struct RootView: View {
         .task {
             actions.seedDefaultCategoriesIfNeeded()
             selectFirstAssetIfNeeded()
+            await actions.backfillLinkPreviews()
         }
         .onChange(of: assets.count) { _, _ in
             selectFirstAssetIfNeeded()
