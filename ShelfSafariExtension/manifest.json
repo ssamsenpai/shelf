@@ -1,0 +1,11 @@
+{
+  "manifest_version": 2,
+  "name": "Shelf",
+  "version": "1.0",
+  "description": "Add images from the web to your Shelf.",
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "permissions": ["contextMenus", "nativeMessaging"]
+}

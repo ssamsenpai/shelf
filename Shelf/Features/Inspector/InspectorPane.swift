@@ -203,6 +203,9 @@ struct InspectorPane: View {
             if let size = asset.fileSizeText {
                 row("Size", size)
             }
+            if !asset.isLink, let domain = asset.linkDomain {
+                row("Source", domain)
+            }
             row("Added", asset.addedAt.formatted(date: .abbreviated, time: .shortened))
             if let modified = asset.contentModifiedAt {
                 row("Modified", modified.formatted(date: .abbreviated, time: .shortened))

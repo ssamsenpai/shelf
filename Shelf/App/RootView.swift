@@ -117,6 +117,9 @@ struct RootView: View {
             .onChange(of: assets.count) { _, _ in
                 selectFirstAssetIfNeeded()
             }
+            .onOpenURL { url in
+                handleShelfURL(url)
+            }
             // UserDefaults is the only channel between the Settings scene and this
             // window, so the toggle flipping on is observed here and art fetches
             // right away instead of waiting for the next launch.
@@ -142,7 +145,7 @@ struct RootView: View {
                 handleImport(result)
             }
             .dropDestination(for: URL.self) { urls, _ in
-                Task { await actions.importFiles(urls, into: importDestination) }
+                Task { _ = await actions.importFiles(urls, into: importDestination) }
                 return true
             }
             .alert(
@@ -176,10 +179,28 @@ struct RootView: View {
         app.selectedAssetIDs = [first.id]
     }
 
+    /// shelf://add?url=...&page=...&title=... from the Safari extension.
+    @MainActor
+    private func handleShelfURL(_ url: URL) {
+        guard url.scheme == "shelf", url.host() == "add",
+              let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
+              let imageString = items.first(where: { $0.name == "url" })?.value,
+              let imageURL = URL(string: imageString)
+        else { return }
+
+        let pageURL = items.first(where: { $0.name == "page" })?.value.flatMap(URL.init(string:))
+        let title = items.first(where: { $0.name == "title" })?.value
+
+        Task {
+            await actions.addFromWeb(imageURL: imageURL, pageURL: pageURL, title: title)
+        }
+    }
+
+    @MainActor
     private func handleImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
-            Task { await actions.importFiles(urls, into: importDestination) }
+            Task { _ = await actions.importFiles(urls, into: importDestination) }
         case .failure(let error):
             app.importError = error.localizedDescription
         }

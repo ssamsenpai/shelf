@@ -183,14 +183,16 @@ struct LibraryActions {
     }
 
     /// Imports files by reference. Nothing is ever copied.
-    func importFiles(_ urls: [URL], into category: ShelfCategory?) async {
+    @discardableResult
+    func importFiles(_ urls: [URL], into category: ShelfCategory?) async -> [Asset] {
         let prepared = await ImportService.prepare(urls: urls)
 
         guard !prepared.isEmpty else {
             app.importError = "Those files are not types Shelf collects."
-            return
+            return []
         }
 
+        var created: [Asset] = []
         for file in prepared {
             let asset = Asset(
                 name: file.name,
@@ -209,8 +211,32 @@ struct LibraryActions {
             asset.projectFileCount = file.projectFileCount
             asset.projectIsGit = file.projectIsGit
             context.insert(asset)
+            created.append(asset)
         }
         try? context.save()
+        return created
+    }
+
+    /// Handles shelf://add from the browser extension: downloads the image, runs
+    /// it through the normal import, and keeps the page it came from as provenance.
+    func addFromWeb(imageURL: URL, pageURL: URL?, title: String?) async {
+        do {
+            let saved = try await WebImageImporter.download(imageURL)
+            let created = await importFiles([saved], into: nil)
+
+            if let asset = created.first {
+                if let pageURL {
+                    asset.linkURLString = pageURL.absoluteString
+                }
+                if let title, !title.isEmpty {
+                    asset.name = title
+                }
+                app.selectedAssetIDs = [asset.id]
+                try? context.save()
+            }
+        } catch {
+            app.importError = error.localizedDescription
+        }
     }
 
     func move(_ assets: [Asset], to category: ShelfCategory?) {
