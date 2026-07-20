@@ -13,7 +13,10 @@ struct ShelfApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        // A single window scene, not a WindowGroup: Shelf is one library, so there
+        // is never a second window. This also removes File > New Window and stops
+        // shelf:// events from spawning extra windows.
+        Window("Shelf", id: "main") {
             RootView()
                 .environment(app)
                 .tint(.shelfAccent)
