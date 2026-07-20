@@ -120,12 +120,17 @@ public struct StackedCards: View {
         if let preview {
             shape
                 .fill(Color.shelfContent)
-                .overlay {
+                // Anchored to the top edge, so filling a portrait card crops the
+                // bottom of the image and never the top.
+                .overlay(alignment: .top) {
                     if let image = preview {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                    } else {
+                    }
+                }
+                .overlay {
+                    if preview == Image?.none {
                         // Solid enough to read as deliberate rather than as a
                         // card that failed to load.
                         Image(systemName: count == 0 ? "plus" : placeholderSymbol)

@@ -29,9 +29,16 @@ struct CategoryStackTile: View {
         newestAssets.map { "\($0.id)-\($0.thumbnailRevision)" }.joined()
     }
 
-    /// The chosen cover fronts the stack, then the newest of the rest behind it.
+    /// The chosen cover fronts the stack. The rest are picked for visual quality,
+    /// not recency: photographs first, then PNG, other visuals, link art, and dev
+    /// project folders only when nothing better exists. Ties break newest first.
     private var newestAssets: [Asset] {
-        let sorted = category.assets.sorted { $0.addedAt > $1.addedAt }
+        let sorted = category.assets.sorted { lhs, rhs in
+            let l = coverPriority(lhs)
+            let r = coverPriority(rhs)
+            if l != r { return l < r }
+            return lhs.addedAt > rhs.addedAt
+        }
 
         guard let coverID = category.coverAssetID,
               let cover = sorted.first(where: { $0.id == coverID })
@@ -40,6 +47,27 @@ struct CategoryStackTile: View {
         }
 
         return [cover] + sorted.filter { $0.id != coverID }.prefix(2)
+    }
+
+    private func coverPriority(_ asset: Asset) -> Int {
+        if asset.isProject { return 5 }
+        if asset.isLink {
+            // A link earns its slot only when its Open Graph art is on disk.
+            return ThumbnailCache.hasCached(id: asset.id) ? 3 : 6
+        }
+
+        switch asset.kind {
+        case .image:
+            switch asset.fileExtension.lowercased() {
+            case "jpg", "jpeg": return 0
+            case "png": return 1
+            default: return 2
+            }
+        case .svg, .video:
+            return 2
+        default:
+            return 4
+        }
     }
 
     private func loadPreviews() async -> [Image?] {
