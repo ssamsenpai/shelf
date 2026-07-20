@@ -4,8 +4,19 @@
   "version": "1.0",
   "description": "Add images from the web to your Shelf.",
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "persistent": false
   },
-  "permissions": ["contextMenus", "nativeMessaging", "<all_urls>"]
+  "permissions": [
+    "contextMenus",
+    "nativeMessaging",
+    "<all_urls>"
+  ],
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png"
+  }
 }

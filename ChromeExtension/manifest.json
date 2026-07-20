@@ -6,6 +6,15 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["contextMenus"],
-  "host_permissions": ["<all_urls>"]
+  "permissions": [
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png"
+  }
 }
