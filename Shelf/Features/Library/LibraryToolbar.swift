@@ -64,6 +64,15 @@ struct LibraryToolbar: ToolbarContent {
 
         ToolbarSpacer(.fixed)
 
+        // A compact field rather than .searchable, whose macOS toolbar version
+        // offers no control over its width.
+        ToolbarItem {
+            SearchField(text: $app.searchText, prompt: "Search")
+                .frame(width: 170)
+        }
+
+        ToolbarSpacer(.fixed)
+
         ToolbarItem {
             Button {
                 app.inspectorPresented.toggle()

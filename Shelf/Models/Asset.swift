@@ -24,6 +24,12 @@ final class Asset {
     /// image arriving. Thumbnail views key on it to reload.
     var thumbnailRevision: Int = 0
 
+    /// What the on device classifier saw in the preview. Searchable, lowercase.
+    var visionLabels: [String] = []
+    /// Set once the classifier has run, so the backfill never repeats work, even
+    /// for images where it found nothing.
+    var visionScanned: Bool = false
+
     /// Dev project metadata, gathered by a shallow scan at import.
     var projectLanguages: [String] = []
     var projectFileCount: Int = 0

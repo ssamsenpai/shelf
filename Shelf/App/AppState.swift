@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 import Observation
 import SwiftUI
 
@@ -150,9 +151,41 @@ final class AppState {
     }
 
     private func matchesSearch(_ asset: Asset) -> Bool {
-        let query = searchText.trimmingCharacters(in: .whitespaces)
+        let query = searchText.trimmingCharacters(in: .whitespaces).lowercased()
         guard !query.isEmpty else { return true }
-        return asset.name.localizedCaseInsensitiveContains(query)
-            || asset.kind.title.localizedCaseInsensitiveContains(query)
+
+        if asset.name.localizedCaseInsensitiveContains(query)
+            || asset.kind.title.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+
+        // What the classifier saw, expanded with near synonyms so "puppy" still
+        // finds images labeled "dog". All of it on device.
+        for term in expandedTerms(for: query) {
+            if asset.visionLabels.contains(where: { $0.contains(term) }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// The query plus its nearest word embedding neighbours. Cached per query,
+    /// because neighbours are looked up on every filtered asset otherwise.
+    private var cachedExpansion: (query: String, terms: [String]) = ("", [])
+
+    private func expandedTerms(for query: String) -> [String] {
+        if cachedExpansion.query == query { return cachedExpansion.terms }
+
+        var terms = [query]
+        // Neighbours only make sense for a single word.
+        if !query.contains(" "), let embedding = NLEmbedding.wordEmbedding(for: .english) {
+            let neighbours = embedding.neighbors(for: query, maximumCount: 6)
+                .filter { $0.1 < 1.05 }
+                .map { $0.0.lowercased() }
+            terms.append(contentsOf: neighbours)
+        }
+
+        cachedExpansion = (query, terms)
+        return terms
     }
 }

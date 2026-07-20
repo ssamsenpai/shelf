@@ -51,8 +51,6 @@ struct RootView: View {
         .toolbar {
             LibraryToolbar()
         }
-        // Native toolbar search, so it sits in the header the way Finder's does.
-        .searchable(text: $app.searchText, prompt: "Search Shelf")
         .shelfAnimation(Motion.smooth, value: app.inspectorPresented)
         .focusedSceneValue(\.libraryActions, actions)
     }
@@ -123,6 +121,7 @@ struct RootView: View {
                 actions.seedDevProjectsCategoryIfNeeded()
                 selectFirstAssetIfNeeded()
                 await actions.backfillLinkPreviews()
+                await actions.backfillVisionLabels()
             }
             .onChange(of: assets.count) { _, _ in
                 selectFirstAssetIfNeeded()

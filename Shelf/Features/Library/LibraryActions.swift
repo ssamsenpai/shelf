@@ -121,6 +121,23 @@ struct LibraryActions {
         try? context.save()
     }
 
+    /// Runs the on device classifier over every asset that has a thumbnail and no
+    /// labels yet. Converges: each asset is scanned once, results or not.
+    func backfillVisionLabels() async {
+        let descriptor = FetchDescriptor<Asset>()
+        let pending = ((try? context.fetch(descriptor)) ?? [])
+            .filter { !$0.visionScanned && VisionTagger.supports($0.kind) }
+
+        for asset in pending {
+            guard let data = await ThumbnailCache.thumbnailData(id: asset.id, bookmark: asset.bookmark) else {
+                continue
+            }
+            asset.visionLabels = await VisionTagger.labels(for: data)
+            asset.visionScanned = true
+        }
+        try? context.save()
+    }
+
     /// Refetches one link's art and title on demand. Enables nothing: with the
     /// previews toggle off this quietly does nothing, same as everywhere else.
     func fetchLinkPreview(_ asset: Asset) async {
