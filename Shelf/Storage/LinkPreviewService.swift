@@ -5,6 +5,11 @@ import Foundation
 /// This is the only code in Shelf that touches the network, and it refuses to run
 /// unless the user has turned link previews on in Settings. With the toggle off,
 /// `fetch` returns immediately and nothing leaves the device.
+///
+/// Fetching happens once per link. The result, art included, lands on disk and the
+/// app renders from that cache afterwards, so a link keeps its preview offline and
+/// no request is ever repeated for a site that answered. Only a link that could not
+/// be reached at all stays eligible for another try.
 enum LinkPreviewService {
 
     static let settingKey = "linkPreviews"
@@ -18,12 +23,58 @@ enum LinkPreviewService {
         var imageData: Data?
     }
 
-    static func fetch(for url: URL) async -> Preview? {
-        guard isEnabled else { return nil }
+    /// Distinguishes "the site answered and this is what it has" from "we never
+    /// reached it". Callers mark a link as fetched only on `.done`, so an offline
+    /// attempt stays retryable while an answered one is never repeated.
+    enum Outcome: Sendable {
+        case disabled
+        case unreachable
+        case done(Preview)
+    }
+
+    static func fetch(for url: URL) async -> Outcome {
+        guard isEnabled else { return .disabled }
         guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
-            return nil
+            return .done(Preview())
         }
 
+        guard let html = await fetchHTML(at: url) else { return .unreachable }
+
+        let title = metaContent(in: html, property: "og:title") ?? titleTag(in: html)
+        var imageData: Data?
+
+        // Open Graph art first, then declared icons, then the classic favicon
+        // location. The icon fallbacks are what keep a plain site from rendering
+        // as an empty card.
+        if let imageValue = metaContent(in: html, property: "og:image"),
+           let imageURL = URL(string: imageValue, relativeTo: url)?.absoluteURL {
+            imageData = await fetchImage(at: imageURL)
+        }
+
+        if imageData == nil {
+            for iconValue in iconCandidates(in: html) {
+                guard let iconURL = URL(string: iconValue, relativeTo: url)?.absoluteURL else { continue }
+                if let data = await fetchImage(at: iconURL) {
+                    imageData = data
+                    break
+                }
+            }
+        }
+
+        if imageData == nil, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            components.path = "/favicon.ico"
+            components.query = nil
+            if let faviconURL = components.url {
+                imageData = await fetchImage(at: faviconURL)
+            }
+        }
+
+        return .done(Preview(title: title, imageData: imageData))
+    }
+
+    // MARK: Requests
+
+    private static func fetchHTML(at url: URL) async -> String? {
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         // Some sites only emit Open Graph tags for a browser like user agent.
@@ -32,29 +83,18 @@ enum LinkPreviewService {
             forHTTPHeaderField: "User-Agent"
         )
 
-        guard let (data, _) = try? await URLSession.shared.data(for: request),
-              let html = String(data: data.prefix(400_000), encoding: .utf8)
-                  ?? String(data: data.prefix(400_000), encoding: .isoLatin1)
-        else { return nil }
-
-        let title = metaContent(in: html, property: "og:title") ?? titleTag(in: html)
-        var imageData: Data?
-
-        if let imageValue = metaContent(in: html, property: "og:image"),
-           let imageURL = URL(string: imageValue, relativeTo: url)?.absoluteURL {
-            imageData = await fetchImage(at: imageURL)
-        }
-
-        guard title != nil || imageData != nil else { return nil }
-        return Preview(title: title, imageData: imageData)
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return nil }
+        return String(data: data.prefix(400_000), encoding: .utf8)
+            ?? String(data: data.prefix(400_000), encoding: .isoLatin1)
     }
 
     private static func fetchImage(at url: URL) async -> Data? {
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
-        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
-            return nil
-        }
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              !data.isEmpty
+        else { return nil }
+
         // Guard against a page returning HTML where an image was advertised.
         let type = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Type") ?? ""
         guard type.hasPrefix("image/") else { return nil }
@@ -76,6 +116,25 @@ enum LinkPreviewService {
             }
         }
         return nil
+    }
+
+    /// Declared icons, largest flavours first.
+    private static func iconCandidates(in html: String) -> [String] {
+        let rels = ["apple-touch-icon", "apple-touch-icon-precomposed", "icon", "shortcut icon"]
+        var candidates: [String] = []
+
+        for rel in rels {
+            let patterns = [
+                "<link[^>]+rel=[\"']\(rel)[\"'][^>]*href=[\"']([^\"']+)[\"']",
+                "<link[^>]+href=[\"']([^\"']+)[\"'][^>]*rel=[\"']\(rel)[\"']"
+            ]
+            for pattern in patterns {
+                if let value = firstMatch(in: html, pattern: pattern) {
+                    candidates.append(decodeEntities(value))
+                }
+            }
+        }
+        return candidates
     }
 
     private static func titleTag(in html: String) -> String? {

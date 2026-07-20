@@ -6,6 +6,12 @@ import ShelfUI
 struct ShelfApp: App {
     @State private var app = AppState()
 
+    init() {
+        // Previews are on unless the user turns them off. Each link is fetched
+        // once and rendered from cache afterwards, so the app stays offline.
+        UserDefaults.standard.register(defaults: [LinkPreviewService.settingKey: true])
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()

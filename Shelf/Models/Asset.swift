@@ -17,6 +17,9 @@ final class Asset {
     var originalPath: String = ""
     /// Set for links, which have no file and therefore no bookmark.
     var linkURLString: String = ""
+    /// When the link's site last answered a preview fetch. Nil means never reached,
+    /// which is the only state that stays eligible for another automatic try.
+    var previewFetchedAt: Date?
     /// Bumped when the cached preview changes after import, such as an Open Graph
     /// image arriving. Thumbnail views key on it to reload.
     var thumbnailRevision: Int = 0

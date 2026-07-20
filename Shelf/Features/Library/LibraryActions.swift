@@ -94,8 +94,9 @@ struct LibraryActions {
         context.insert(asset)
         try? context.save()
 
-        guard let preview = await LinkPreviewService.fetch(for: url) else { return }
+        guard case .done(let preview) = await LinkPreviewService.fetch(for: url) else { return }
 
+        asset.previewFetchedAt = Date()
         if let fetchedTitle = preview.title, title?.isEmpty != false {
             asset.name = fetchedTitle
         }
@@ -124,14 +125,15 @@ struct LibraryActions {
     /// previews toggle off this quietly does nothing, same as everywhere else.
     func fetchLinkPreview(_ asset: Asset) async {
         guard asset.isLink, let url = asset.linkURL,
-              let preview = await LinkPreviewService.fetch(for: url)
+              case .done(let preview) = await LinkPreviewService.fetch(for: url)
         else { return }
 
+        asset.previewFetchedAt = Date()
         if let imageData = preview.imageData {
             ThumbnailCache.store(imageData, id: asset.id)
             asset.thumbnailRevision += 1
         }
-        if let title = preview.title, asset.name == asset.linkDomain {
+        if let title = preview.title, asset.name == asset.linkDomain || asset.name == asset.linkURL?.host() {
             asset.name = title
         }
         try? context.save()
@@ -143,20 +145,24 @@ struct LibraryActions {
     func backfillLinkPreviews() async {
         guard LinkPreviewService.isEnabled else { return }
 
+        // Only links whose site never answered. A site that answered without art
+        // is a settled question, retrying it every launch would keep the app on
+        // the network for nothing.
         let descriptor = FetchDescriptor<Asset>()
         let links = ((try? context.fetch(descriptor)) ?? [])
-            .filter { $0.isLink && !ThumbnailCache.hasCached(id: $0.id) }
+            .filter { $0.isLink && $0.previewFetchedAt == nil }
 
         for link in links {
             guard let url = link.linkURL,
-                  let preview = await LinkPreviewService.fetch(for: url)
+                  case .done(let preview) = await LinkPreviewService.fetch(for: url)
             else { continue }
 
+            link.previewFetchedAt = Date()
             if let imageData = preview.imageData {
                 ThumbnailCache.store(imageData, id: link.id)
                 link.thumbnailRevision += 1
             }
-            if let title = preview.title, link.name == link.linkDomain {
+            if let title = preview.title, link.name == link.linkDomain || link.name == link.linkURL?.host() {
                 link.name = title
             }
         }

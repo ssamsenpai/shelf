@@ -1,11 +1,11 @@
 import SwiftUI
 import ShelfUI
 
-/// Settings. Link previews is the only switch that can ever touch the network, and
-/// it ships off.
+/// Settings. Link previews is the only switch that can ever touch the network.
+/// On by default, fetch once per link, cached from then on.
 struct SettingsView: View {
     @AppStorage("watchDownloads") private var watchDownloads = true
-    @AppStorage("linkPreviews") private var linkPreviews = false
+    @AppStorage(LinkPreviewService.settingKey) private var linkPreviews = true
 
     var body: some View {
         TabView {
@@ -24,7 +24,7 @@ struct SettingsView: View {
                 Section {
                     Toggle("Fetch link previews", isOn: $linkPreviews)
                 } footer: {
-                    Text("Off by default. When off, Shelf makes no network requests.")
+                    Text("Each link is fetched once and kept cached, so Shelf stays offline afterwards. Turn this off and Shelf makes no network requests at all.")
                         .shelfMeta()
                 }
             }
