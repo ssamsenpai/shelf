@@ -22,7 +22,7 @@ struct ShelfApp: App {
         .modelContainer(for: [ShelfCategory.self, Asset.self])
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("New Category") { app.newCategoryRequested = true }
+                Button("New Collection") { app.newCategoryRequested = true }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                 Button("Add Items...") { app.requestImport() }
                     .keyboardShortcut("i", modifiers: .command)

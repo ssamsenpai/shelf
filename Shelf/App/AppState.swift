@@ -128,7 +128,7 @@ final class AppState {
         switch selection {
         case .allItems: "All Items"
         case .recent: "Recent"
-        case .category: category?.name ?? "Category"
+        case .category: category?.name ?? "Collection"
         }
     }
 

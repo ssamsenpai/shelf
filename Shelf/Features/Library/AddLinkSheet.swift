@@ -38,9 +38,9 @@ struct AddLinkSheet: View {
                         .textFieldStyle(.roundedBorder)
                 }
 
-                field("Category") {
+                field("Collection") {
                     Picker("", selection: $categoryID) {
-                        Text("No Category").tag(UUID?.none)
+                        Text("No Collection").tag(UUID?.none)
                         ForEach(categories) { category in
                             Text(category.name).tag(UUID?.some(category.id))
                         }

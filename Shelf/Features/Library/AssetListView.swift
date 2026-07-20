@@ -16,7 +16,7 @@ struct AssetListView: View {
 
         return List(selection: $app.selectedAssetIDs) {
             if !categories.isEmpty {
-                Section("Categories") {
+                Section("Collections") {
                     CategoryFolderGrid(categories: categories, actions: actions, showsHeader: false)
                         .padding(.vertical, Spacing.s)
                         .listRowSeparator(.hidden)

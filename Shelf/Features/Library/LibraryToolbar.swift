@@ -48,9 +48,9 @@ struct LibraryToolbar: ToolbarContent {
             Button {
                 app.newCategoryRequested = true
             } label: {
-                Label("New Category", systemImage: "folder.badge.plus")
+                Label("New Collection", systemImage: "folder.badge.plus")
             }
-            .help("New category")
+            .help("New collection")
 
             Menu {
                 Button("Add Files...") { app.requestImport() }

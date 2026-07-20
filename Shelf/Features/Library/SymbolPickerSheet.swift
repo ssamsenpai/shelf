@@ -27,7 +27,7 @@ struct SymbolPickerSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.l) {
-            Text("Category Icon")
+            Text("Collection Icon")
                 .font(.title3.weight(.semibold))
 
             ScrollView {

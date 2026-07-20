@@ -36,16 +36,20 @@ public struct StackedCards: View {
 
     private var isActive: Bool { hovering || isDropTarget }
 
-    /// How far the two back cards swing out. Reduce Motion keeps them at rest.
+    /// How far the two back cards swing out. Visible at rest so the stack reads
+    /// as one, opening further on hover. Reduce Motion keeps them at rest.
     private var fan: Double {
-        guard !reduceMotion else { return 7 }
-        return isActive ? 13 : 7
+        guard !reduceMotion else { return 10 }
+        return isActive ? 16 : 10
     }
 
     private var spread: CGFloat {
-        guard !reduceMotion else { return 10 }
-        return isActive ? 17 : 10
+        guard !reduceMotion else { return 15 }
+        return isActive ? 22 : 15
     }
+
+    /// The back cards also peek above the front one, like a loose pile.
+    private var peek: CGFloat { spread * 0.55 }
 
     public var body: some View {
         VStack(spacing: Spacing.m) {
@@ -78,16 +82,18 @@ public struct StackedCards: View {
 
     private var stack: some View {
         GeometryReader { proxy in
-            let side = min(proxy.size.width, proxy.size.height) * 0.82
+            let side = min(proxy.size.width, proxy.size.height) * 0.80
 
             ZStack {
                 card(preview: preview(at: 2), side: side)
+                    .scaleEffect(0.96)
                     .rotationEffect(.degrees(fan))
-                    .offset(x: spread)
+                    .offset(x: spread, y: -peek)
 
                 card(preview: preview(at: 1), side: side)
+                    .scaleEffect(0.96)
                     .rotationEffect(.degrees(-fan))
-                    .offset(x: -spread)
+                    .offset(x: -spread, y: -peek)
 
                 card(preview: preview(at: 0), side: side)
             }
@@ -106,8 +112,13 @@ public struct StackedCards: View {
 
     @ViewBuilder
     private func card(preview: Image??, side: CGFloat) -> some View {
+        // Portrait cards with generous continuous corners, the iOS squircle feel.
+        let width = side * 0.82
+        let corner = width * 0.24
+        let shape = RoundedRectangle(cornerRadius: corner, style: .continuous)
+
         if let preview {
-            RoundedRectangle.shelf(Radius.medium)
+            shape
                 .fill(Color.shelfContent)
                 .overlay {
                     if let image = preview {
@@ -122,12 +133,11 @@ public struct StackedCards: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .clipShape(RoundedRectangle.shelf(Radius.medium))
+                .clipShape(shape)
                 .overlay {
-                    RoundedRectangle.shelf(Radius.medium)
-                        .strokeBorder(borderColor, lineWidth: borderWidth)
+                    shape.strokeBorder(borderColor, lineWidth: borderWidth)
                 }
-                .frame(width: side, height: side)
+                .frame(width: width, height: side)
                 .shelfShadow(lifted: true)
         }
     }

@@ -42,7 +42,7 @@ struct LibrarySidebar: View {
 
             Section {
                 if categories.isEmpty {
-                    Text("No categories yet")
+                    Text("No collections yet")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .listRowSeparator(.hidden)
@@ -52,7 +52,7 @@ struct LibrarySidebar: View {
                     }
                 }
             } header: {
-                SectionHeader("Categories")
+                SectionHeader("Collections")
             }
         }
         .listStyle(.sidebar)

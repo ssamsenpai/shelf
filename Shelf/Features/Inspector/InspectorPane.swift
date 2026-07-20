@@ -37,12 +37,12 @@ struct InspectorPane: View {
             Text("\(selected.count) items selected")
                 .font(.headline)
 
-            Menu("Move to Category") {
+            Menu("Move to Collection") {
                 ForEach(categories) { category in
                     Button(category.name) { actions.move(selected, to: category) }
                 }
                 Divider()
-                Button("No Category") { actions.move(selected, to: nil) }
+                Button("No Collection") { actions.move(selected, to: nil) }
             }
             .menuStyle(.borderlessButton)
             .frame(width: 180)
@@ -84,13 +84,13 @@ struct InspectorPane: View {
                     }
                 }
 
-                section("Category") {
-                    Menu(asset.category?.name ?? "No Category") {
+                section("Collection") {
+                    Menu(asset.category?.name ?? "No Collection") {
                         ForEach(categories) { category in
                             Button(category.name) { actions.move([asset], to: category) }
                         }
                         Divider()
-                        Button("No Category") { actions.move([asset], to: nil) }
+                        Button("No Collection") { actions.move([asset], to: nil) }
                     }
                     .menuStyle(.borderlessButton)
                 }

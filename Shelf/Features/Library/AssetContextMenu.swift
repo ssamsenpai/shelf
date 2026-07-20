@@ -28,18 +28,18 @@ struct AssetContextMenu: View {
 
         Divider()
 
-        Menu("Move to Category") {
+        Menu("Move to Collection") {
             ForEach(categories) { category in
                 Button(category.name) { actions.move([asset], to: category) }
             }
             if !categories.isEmpty {
                 Divider()
             }
-            Button("No Category") { actions.move([asset], to: nil) }
+            Button("No Collection") { actions.move([asset], to: nil) }
         }
 
         if asset.category != nil {
-            Button("Set as Category Cover") { actions.setAsCover(asset) }
+            Button("Set as Collection Cover") { actions.setAsCover(asset) }
         }
 
         Button("Get Info") {

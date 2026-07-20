@@ -12,7 +12,7 @@ struct LibraryActions {
     /// Creates a category and drops straight into inline rename, like Finder.
     @discardableResult
     func createCategory() -> ShelfCategory {
-        let category = ShelfCategory(name: "New Category")
+        let category = ShelfCategory(name: "New Collection")
         context.insert(category)
         try? context.save()
 
@@ -45,7 +45,7 @@ struct LibraryActions {
             do {
                 try context.save()
             } catch {
-                app.importError = "Could not create the default category \(name)."
+                app.importError = "Could not create the default collection \(name)."
                 return
             }
         }
@@ -171,7 +171,7 @@ struct LibraryActions {
 
     func rename(_ category: ShelfCategory, to name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        category.name = trimmed.isEmpty ? "New Category" : trimmed
+        category.name = trimmed.isEmpty ? "New Collection" : trimmed
         try? context.save()
     }
 

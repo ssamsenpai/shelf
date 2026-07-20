@@ -78,7 +78,7 @@ struct LibraryContentView: View {
                             EmptyState(
                                 symbol: "square.dashed",
                                 title: "No files yet",
-                                message: "Open a category or add items to fill your library.",
+                                message: "Open a collection or add items to fill your library.",
                                 actionTitle: "Add Files",
                                 secondaryActionTitle: "Add Link",
                                 action: { app.requestImport() },
@@ -174,16 +174,16 @@ struct CategoryFolderGrid: View {
     @Environment(AppState.self) private var app
     @State private var dropTargetID: UUID?
 
-    private let columns = [GridItem(.adaptive(minimum: 132, maximum: 180), spacing: Spacing.l)]
+    private let columns = [GridItem(.adaptive(minimum: 150, maximum: 190), spacing: Spacing.xxl)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.m) {
             if showsHeader {
-                Text("Categories")
+                Text("Collections")
                     .font(.headline)
             }
 
-            LazyVGrid(columns: columns, alignment: .leading, spacing: Spacing.l) {
+            LazyVGrid(columns: columns, alignment: .leading, spacing: Spacing.xxl) {
                 ForEach(categories) { category in
                     CategoryStackTile(
                         category: category,
