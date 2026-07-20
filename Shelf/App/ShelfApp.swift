@@ -31,6 +31,11 @@ struct ShelfApp: App {
                 Button("Show Inspector") { app.inspectorPresented.toggle() }
                     .keyboardShortcut("i", modifiers: [.command, .option])
             }
+            CommandGroup(after: .help) {
+                Button("Set Up Browser Extension...") {
+                    app.isPresentingExtensionOnboarding = true
+                }
+            }
         }
 
         Settings {

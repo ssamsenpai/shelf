@@ -73,6 +73,7 @@ final class AppState {
     var quickLookURL: URL?
 
     var isPresentingImport: Bool = false
+    var isPresentingExtensionOnboarding: Bool = false
     var isPresentingProjectImport: Bool = false
     var isPresentingAddLink: Bool = false
     var isConfirmingRemoval: Bool = false

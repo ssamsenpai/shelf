@@ -94,6 +94,9 @@ struct RootView: View {
         @Bindable var app = app
 
         return interacting
+            .sheet(isPresented: $app.isPresentingExtensionOnboarding) {
+                ExtensionOnboardingSheet()
+            }
             .sheet(isPresented: $app.isPresentingAddLink) {
                 AddLinkSheet(actions: actions, defaultCategory: importDestination)
             }
@@ -109,6 +112,13 @@ struct RootView: View {
                 }
             }
             .task {
+                // The extension walkthrough shows once, then lives in Help.
+                let defaults = UserDefaults.standard
+                if !defaults.bool(forKey: "didShowExtensionOnboarding") {
+                    defaults.set(true, forKey: "didShowExtensionOnboarding")
+                    app.isPresentingExtensionOnboarding = true
+                }
+
                 actions.seedDefaultCategoriesIfNeeded()
                 actions.seedDevProjectsCategoryIfNeeded()
                 selectFirstAssetIfNeeded()
