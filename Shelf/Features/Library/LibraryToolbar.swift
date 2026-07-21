@@ -30,7 +30,10 @@ struct LibraryToolbar: ToolbarContent {
                 .pickerStyle(.inline)
             } label: {
                 Label("Sort", systemImage: "arrow.up.arrow.down")
+                    .foregroundStyle(.secondary)
             }
+            // Quiet chrome: the window tint would otherwise paint this accent.
+            .tint(Color.secondary)
             .help("Sort items")
         }
 
