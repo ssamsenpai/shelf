@@ -37,11 +37,12 @@ public extension Color {
 }
 
 
-/// The primary action gradient, 28AA45 at the bottom rising to 64F465. One look
+/// The primary action gradient. Two greens sitting close together, so the fill
+/// reads as a solid with a faint inner light rather than as a gradient. One look
 /// for both appearances. Fills only: labels on top of it stay white.
 public enum ShelfGradient {
     public static let bottom = Color(.sRGB, red: 0.157, green: 0.667, blue: 0.271)
-    public static let top = Color(.sRGB, red: 0.392, green: 0.957, blue: 0.396)
+    public static let top = Color(.sRGB, red: 0.196, green: 0.741, blue: 0.318)
 
     public static let primary = LinearGradient(
         colors: [bottom, top],

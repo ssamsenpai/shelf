@@ -72,6 +72,8 @@ final class AppState {
     var iconPickerCategoryID: UUID?
     /// Bound to the Quick Look panel, driven by Space.
     var quickLookURL: URL?
+    /// Asset shown in the in app lightbox. Nil when closed.
+    var expandedAssetID: UUID?
 
     /// What the file panel is being asked for. One request drives one importer:
     /// stack two fileImporter modifiers on a chain and SwiftUI only honors one.
@@ -165,6 +167,18 @@ final class AppState {
             return true
         }
 
+        // A hex query searches by color: anything whose extracted palette comes
+        // near it matches, not just exact bucket hits.
+        if let target = Self.rgb(from: query) {
+            return asset.dominantColors.contains { hex in
+                guard let candidate = Self.rgb(from: hex) else { return false }
+                let distance = abs(target.0 - candidate.0)
+                    + abs(target.1 - candidate.1)
+                    + abs(target.2 - candidate.2)
+                return distance < 150
+            }
+        }
+
         // The format: "png" finds every PNG, "jpg" also hits jpeg, and so on.
         let ext = asset.fileExtension.lowercased()
         if !ext.isEmpty {
@@ -193,6 +207,16 @@ final class AppState {
             }
         }
         return false
+    }
+
+    /// Parses #RRGGBB or RRGGBB. Nil for anything that is not a color.
+    private static func rgb(from text: String) -> (Int, Int, Int)? {
+        var cleaned = text.trimmingCharacters(in: .whitespaces)
+        if cleaned.hasPrefix("#") { cleaned.removeFirst() }
+        guard cleaned.count == 6, cleaned.allSatisfy(\.isHexDigit),
+              let value = UInt32(cleaned, radix: 16)
+        else { return nil }
+        return (Int((value >> 16) & 0xFF), Int((value >> 8) & 0xFF), Int(value & 0xFF))
     }
 
     /// The query plus its nearest word embedding neighbours. Cached per query,

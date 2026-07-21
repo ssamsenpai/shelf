@@ -73,6 +73,11 @@ struct InspectorPane: View {
                     }
                     .frame(height: 180)
                     .clipShape(RoundedRectangle.shelf(Radius.medium))
+                    .contentShape(.rect)
+                    .onTapGesture {
+                        if image != nil { app.expandedAssetID = asset.id }
+                    }
+                    .help("Click to expand")
                 }
 
                 Text(asset.displayName)
@@ -86,7 +91,9 @@ struct InspectorPane: View {
 
                 if !asset.dominantColors.isEmpty {
                     section("Colors") {
-                        SwatchRow(hexes: asset.dominantColors)
+                        SwatchRow(hexes: asset.dominantColors) { hex in
+                            app.searchText = hex
+                        }
                     }
                 }
 

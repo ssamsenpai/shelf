@@ -3,26 +3,42 @@ import SwiftUI
 /// A row of color swatches. Hex shows on hover, so the row stays quiet at rest.
 public struct SwatchRow: View {
     private let hexes: [String]
+    private let onSelect: ((String) -> Void)?
+
     @State private var hovered: String?
 
-    public init(hexes: [String]) {
+    public init(hexes: [String], onSelect: ((String) -> Void)? = nil) {
         self.hexes = hexes
+        self.onSelect = onSelect
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
                 ForEach(hexes, id: \.self) { hex in
-                    RoundedRectangle.shelf(Radius.small)
-                        .fill(Color(hex: hex) ?? .clear)
-                        .frame(height: 28)
-                        .onHover { hovered = $0 ? hex : nil }
+                    swatch(hex)
                 }
             }
 
             Text(hovered ?? " ")
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private func swatch(_ hex: String) -> some View {
+        let shape = RoundedRectangle.shelf(Radius.small)
+            .fill(Color(hex: hex) ?? .clear)
+            .frame(height: 28)
+
+        if let onSelect {
+            Button { onSelect(hex) } label: { shape.contentShape(.rect) }
+                .buttonStyle(.plain)
+                .onHover { hovered = $0 ? hex : nil }
+                .help("Find items with this color")
+        } else {
+            shape.onHover { hovered = $0 ? hex : nil }
         }
     }
 }

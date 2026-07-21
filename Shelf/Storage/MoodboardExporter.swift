@@ -10,6 +10,7 @@ enum MoodboardExporter {
     /// Kept modest so a large collection still renders quickly and the output
     /// stays a sane size for sharing.
     private static let assetLimit = 60
+    static let boardWidth: CGFloat = 1240
     private static let exportWidth: CGFloat = 1240
 
     static func export(_ category: ShelfCategory) async {
@@ -81,12 +82,29 @@ enum MoodboardExporter {
                     }
                 }
 
-                MasonryLayout(columnWidth: 280, spacing: Spacing.l) {
-                    ForEach(Array(previews.enumerated()), id: \.offset) { _, preview in
-                        Image(nsImage: preview.image)
-                            .resizable()
-                            .aspectRatio(preview.ratio, contentMode: .fit)
-                            .clipShape(RoundedRectangle.shelf(Radius.medium))
+                // A uniform grid of centred cells reads calmer on a board than
+                // ragged masonry: every image sits in the same frame.
+                let columns = 4
+                let cell = (MoodboardExporter.boardWidth - Spacing.xl * 2
+                    - CGFloat(columns - 1) * Spacing.l) / CGFloat(columns)
+
+                VStack(alignment: .leading, spacing: Spacing.l) {
+                    ForEach(Array(stride(from: 0, to: previews.count, by: columns)), id: \.self) { start in
+                        HStack(spacing: Spacing.l) {
+                            ForEach(start..<min(start + columns, previews.count), id: \.self) { index in
+                                ZStack {
+                                    RoundedRectangle.shelf(Radius.medium)
+                                        .fill(Color(.sRGB, white: 0.965, opacity: 1))
+                                    Image(nsImage: previews[index].image)
+                                        .resizable()
+                                        .aspectRatio(previews[index].ratio, contentMode: .fit)
+                                        .padding(Spacing.m)
+                                        .clipShape(RoundedRectangle.shelf(Radius.small))
+                                }
+                                .frame(width: cell, height: cell)
+                            }
+                            Spacer(minLength: 0)
+                        }
                     }
                 }
             }

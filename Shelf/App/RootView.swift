@@ -61,6 +61,19 @@ struct RootView: View {
         @Bindable var app = app
 
         return shell
+            .overlay {
+                if let id = app.expandedAssetID,
+                   let asset = assets.first(where: { $0.id == id }) {
+                    LightboxView(asset: asset) { app.expandedAssetID = nil }
+                        .transition(.opacity)
+                }
+            }
+            .shelfAnimation(Motion.snappy, value: app.expandedAssetID)
+            .onKeyPress(.escape) {
+                guard app.expandedAssetID != nil else { return .ignored }
+                app.expandedAssetID = nil
+                return .handled
+            }
             .onKeyPress(.space) {
                 guard let first = selectedAssets.first else { return .ignored }
                 actions.quickLook(first)
