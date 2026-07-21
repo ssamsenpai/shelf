@@ -77,7 +77,7 @@ public struct MasonryLayout: Layout {
 public struct CheckerboardView: View {
     private let square: CGFloat
 
-    public init(square: CGFloat = 8) {
+    public init(square: CGFloat = 16) {
         self.square = square
     }
 

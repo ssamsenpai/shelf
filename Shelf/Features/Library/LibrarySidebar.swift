@@ -212,7 +212,7 @@ private struct CategorySidebarRow: View {
                         .task { renameFocused = true }
                 } else {
                     Text(category.name)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(isSelected ? Color.shelfSidebarActive : .primary)
                         .lineLimit(1)
                         .truncationMode(.tail)
 
