@@ -68,7 +68,7 @@ struct LibraryToolbar: ToolbarContent {
         // A compact field rather than .searchable, whose macOS toolbar version
         // offers no control over its width.
         ToolbarItem {
-            SearchField(text: $app.searchText, prompt: "Search")
+            SearchField(text: $app.searchText, prompt: "Search", bare: true)
                 .frame(width: 170)
         }
 

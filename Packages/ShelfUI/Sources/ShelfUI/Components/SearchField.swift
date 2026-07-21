@@ -4,12 +4,17 @@ import SwiftUI
 /// carries meaning.
 public struct SearchField: View {
     private let prompt: String
+    /// Bare drops the field's own well and focus ring, for placement inside
+    /// chrome that already draws a container, such as a toolbar cluster.
+    private let bare: Bool
+
     @Binding private var text: String
     @FocusState private var focused: Bool
 
-    public init(text: Binding<String>, prompt: String = "Search") {
+    public init(text: Binding<String>, prompt: String = "Search", bare: Bool = false) {
         self._text = text
         self.prompt = prompt
+        self.bare = bare
     }
 
     public var body: some View {
@@ -33,12 +38,14 @@ public struct SearchField: View {
                 .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, Spacing.s)
-        .padding(.vertical, Spacing.xs + 2)
-        .background(Color.shelfWell, in: .shelf(Radius.small))
+        .padding(.horizontal, bare ? 0 : Spacing.s)
+        .padding(.vertical, bare ? 0 : Spacing.xs + 2)
+        .background(bare ? .clear : Color.shelfWell, in: .shelf(Radius.small))
         .overlay {
-            RoundedRectangle.shelf(Radius.small)
-                .strokeBorder(Color.shelfAccent, lineWidth: focused ? 2 : 0)
+            if !bare {
+                RoundedRectangle.shelf(Radius.small)
+                    .strokeBorder(Color.shelfAccent, lineWidth: focused ? 2 : 0)
+            }
         }
         .shelfAnimation(Motion.snappy, value: focused)
         .onTapGesture { focused = true }
