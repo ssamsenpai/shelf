@@ -83,8 +83,8 @@ public struct CheckerboardView: View {
 
     public var body: some View {
         Canvas { context, size in
-            let light = Color(.sRGB, white: 0.93, opacity: 1)
-            let dark = Color(.sRGB, white: 0.84, opacity: 1)
+            let light = Color(.sRGB, white: 0.97, opacity: 1)
+            let dark = Color(.sRGB, white: 0.92, opacity: 1)
 
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(light))
 

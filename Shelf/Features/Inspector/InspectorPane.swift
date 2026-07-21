@@ -59,6 +59,12 @@ struct InspectorPane: View {
                     ZStack {
                         RoundedRectangle.shelf(Radius.medium)
                             .fill(Color.shelfWell)
+                        // Transparency is disclosed here, in the inspector, not
+                        // stamped on every grid tile.
+                        if loaded?.hasTransparency == true {
+                            CheckerboardView()
+                                .clipShape(RoundedRectangle.shelf(Radius.medium))
+                        }
                         if let image {
                             image.resizable().aspectRatio(contentMode: .fit).padding(Spacing.s)
                         } else {

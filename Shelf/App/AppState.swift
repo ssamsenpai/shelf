@@ -159,6 +159,26 @@ final class AppState {
             return true
         }
 
+        // The format: "png" finds every PNG, "jpg" also hits jpeg, and so on.
+        let ext = asset.fileExtension.lowercased()
+        if !ext.isEmpty {
+            if ext.contains(query) || query.contains(ext) { return true }
+            let aliases: [String: Set<String>] = [
+                "jpg": ["jpeg"], "jpeg": ["jpg"],
+                "mov": ["video", "movie"], "mp4": ["video", "movie"]
+            ]
+            if aliases[ext]?.contains(query) == true { return true }
+        }
+
+        if asset.isLink, let domain = asset.linkDomain,
+           domain.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if !asset.tags.isEmpty,
+           asset.tags.contains(where: { $0.localizedCaseInsensitiveContains(query) }) {
+            return true
+        }
+
         // What the classifier saw, expanded with near synonyms so "puppy" still
         // finds images labeled "dog". All of it on device.
         for term in expandedTerms(for: query) {

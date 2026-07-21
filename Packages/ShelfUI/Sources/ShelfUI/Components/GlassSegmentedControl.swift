@@ -60,13 +60,15 @@ public struct GlassSegmentedControl<Value: Hashable & Sendable>: View {
         } label: {
             Text(option.title)
                 .font(.callout.weight(isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
+                .foregroundStyle(isSelected ? .primary : .secondary)
                 .padding(.horizontal, Spacing.l)
                 .frame(height: 30)
                 .background {
                     if isSelected {
+                        // A raised chip rather than a filled one, so the control
+                        // reads as one glass surface with a puck gliding inside.
                         Capsule()
-                            .fill(ShelfGradient.primary)
+                            .fill(Color.shelfRaised)
                             .shelfShadow(lifted: true)
                             .matchedGeometryEffect(id: "selection", in: indicator)
                     }

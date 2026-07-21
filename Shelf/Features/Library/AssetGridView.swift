@@ -19,7 +19,6 @@ struct AssetGridView: View {
                         symbol: asset.kind.symbol,
                         thumbnail: loaded?.image,
                         aspectRatio: tileRatio(asset: asset, loaded: loaded),
-                        showsTransparency: loaded?.hasTransparency ?? false,
                         isSelected: app.selectedAssetIDs.contains(asset.id),
                         onOpen: { actions.revealInFinder(asset) }
                     )
