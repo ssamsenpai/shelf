@@ -152,11 +152,8 @@ struct InspectorPane: View {
             }
 
             if !asset.isProject {
-                Button {
-                    actions.copy(asset)
-                } label: {
-                    actionLabel("Copy", symbol: "doc.on.doc")
-                }
+                CopyButton(asset: asset, actions: actions)
+                    .id(asset.id)
             }
 
             if !asset.isLink {
@@ -269,6 +266,36 @@ private struct DetectedTags: View {
                 .buttonStyle(.plain)
                 .help("Search for \(label)")
             }
+        }
+    }
+}
+
+/// Copy with confirmation: the label turns into a check for a moment, so the
+/// click visibly did something. Identity is keyed to the asset, so switching
+/// selection resets it.
+private struct CopyButton: View {
+    let asset: Asset
+    let actions: LibraryActions
+
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            actions.copy(asset)
+            copied = true
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                Text(copied ? "Copied" : "Copy")
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .foregroundStyle(copied ? Color.shelfSidebarActive : .primary)
+        .shelfAnimation(Motion.snappy, value: copied)
+        .task(id: copied) {
+            guard copied else { return }
+            try? await Task.sleep(for: .seconds(3))
+            copied = false
         }
     }
 }
