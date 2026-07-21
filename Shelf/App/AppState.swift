@@ -73,9 +73,15 @@ final class AppState {
     /// Bound to the Quick Look panel, driven by Space.
     var quickLookURL: URL?
 
-    var isPresentingImport: Bool = false
+    /// What the file panel is being asked for. One request drives one importer:
+    /// stack two fileImporter modifiers on a chain and SwiftUI only honors one.
+    enum FilePickerRequest {
+        case files
+        case projects
+    }
+
+    var filePickerRequest: FilePickerRequest?
     var isPresentingExtensionOnboarding: Bool = false
-    var isPresentingProjectImport: Bool = false
     var isPresentingAddLink: Bool = false
     var isConfirmingRemoval: Bool = false
     var importError: String?
@@ -124,7 +130,7 @@ final class AppState {
 
     // MARK: Actions
 
-    func requestImport() { isPresentingImport = true }
+    func requestImport() { filePickerRequest = .files }
 
     func title(for category: ShelfCategory?) -> String {
         switch selection {

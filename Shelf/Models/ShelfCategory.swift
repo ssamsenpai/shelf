@@ -26,4 +26,16 @@ final class ShelfCategory {
     }
 
     var itemCount: Int { assets.count }
+
+    /// Dominant colors merged across everything inside, most common first. The
+    /// extractor buckets coarsely, so equal hexes really are the same color.
+    func palette(limit: Int = 10) -> [String] {
+        var counts: [String: Int] = [:]
+        for asset in assets {
+            for hex in asset.dominantColors {
+                counts[hex, default: 0] += 1
+            }
+        }
+        return counts.sorted { $0.value > $1.value }.prefix(limit).map(\.key)
+    }
 }

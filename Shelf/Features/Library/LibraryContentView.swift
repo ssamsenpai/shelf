@@ -42,11 +42,17 @@ struct LibraryContentView: View {
         !app.searchText.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
+    /// Only collections with something in them earn a card. Empty ones stay in
+    /// the sidebar, where they read as places to file into rather than as blanks.
+    private var browseCategories: [ShelfCategory] {
+        categories.filter { $0.itemCount > 0 }
+    }
+
     /// Categories lead the browse views so the user can open one visually. Never
     /// during a search, where only results should be on screen.
     private var showsCategoryGrid: Bool {
         guard !isSearching else { return false }
-        if case .allItems = app.selection { return !categories.isEmpty }
+        if case .allItems = app.selection { return !browseCategories.isEmpty }
         return false
     }
 
@@ -70,13 +76,13 @@ struct LibraryContentView: View {
                 AssetListView(
                     assets: assets,
                     actions: actions,
-                    categories: showsCategoryGrid ? categories : []
+                    categories: showsCategoryGrid ? browseCategories : []
                 )
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: Spacing.xl) {
                         if showsCategoryGrid {
-                            CategoryFolderGrid(categories: categories, actions: actions)
+                            CategoryFolderGrid(categories: browseCategories, actions: actions)
                         }
 
                         if !isSearching, let category = currentCategory {

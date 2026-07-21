@@ -23,8 +23,12 @@ enum MoodboardExporter {
         }
         guard !previews.isEmpty else { return }
 
-        let board = BoardView(title: category.name, previews: previews)
-            .frame(width: exportWidth)
+        let board = BoardView(
+            title: category.name,
+            palette: category.palette(),
+            previews: previews
+        )
+        .frame(width: exportWidth)
 
         let renderer = ImageRenderer(content: board)
         renderer.scale = 2
@@ -47,6 +51,7 @@ enum MoodboardExporter {
     /// since the export is a document rather than a window.
     private struct BoardView: View {
         let title: String
+        let palette: [String]
         let previews: [(image: NSImage, ratio: CGFloat)]
 
         var body: some View {
@@ -54,6 +59,27 @@ enum MoodboardExporter {
                 Text(title)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(Color(.sRGB, white: 0.15, opacity: 1))
+
+                if !palette.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        HStack(spacing: 2) {
+                            ForEach(palette, id: \.self) { hex in
+                                Rectangle().fill(Color(hex: hex) ?? .clear)
+                            }
+                        }
+                        .frame(height: 36)
+                        .clipShape(RoundedRectangle.shelf(Radius.small))
+
+                        HStack(spacing: 2) {
+                            ForEach(palette, id: \.self) { hex in
+                                Text(hex)
+                                    .font(.system(size: 9).monospaced())
+                                    .foregroundStyle(Color(.sRGB, white: 0.45, opacity: 1))
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                }
 
                 MasonryLayout(columnWidth: 280, spacing: Spacing.l) {
                     ForEach(Array(previews.enumerated()), id: \.offset) { _, preview in

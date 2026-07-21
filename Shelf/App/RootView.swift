@@ -140,15 +140,13 @@ struct RootView: View {
                 Task { await actions.backfillLinkPreviews() }
             }
             .fileImporter(
-                isPresented: $app.isPresentingImport,
-                allowedContentTypes: ItemKind.fileBacked.flatMap(\.contentTypes),
-                allowsMultipleSelection: true
-            ) { result in
-                handleImport(result)
-            }
-            .fileImporter(
-                isPresented: $app.isPresentingProjectImport,
-                allowedContentTypes: [.folder],
+                isPresented: Binding(
+                    get: { app.filePickerRequest != nil },
+                    set: { if !$0 { app.filePickerRequest = nil } }
+                ),
+                allowedContentTypes: app.filePickerRequest == .projects
+                    ? [.folder]
+                    : ItemKind.fileBacked.flatMap(\.contentTypes),
                 allowsMultipleSelection: true
             ) { result in
                 handleImport(result)

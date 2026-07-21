@@ -6,7 +6,6 @@ import ShelfUI
 /// `ToolbarSpacer` is what separates one cluster from the next.
 struct LibraryToolbar: ToolbarContent {
     @Environment(AppState.self) private var app
-    @Environment(\.openWindow) private var openWindow
 
     var body: some ToolbarContent {
         @Bindable var app = app
@@ -55,19 +54,13 @@ struct LibraryToolbar: ToolbarContent {
 
             Menu {
                 Button("Add Files...") { app.requestImport() }
-                Button("Add Dev Project...") { app.isPresentingProjectImport = true }
+                Button("Add Dev Project...") { app.filePickerRequest = .projects }
                 Button("Add Link...") { app.isPresentingAddLink = true }
             } label: {
                 Label("Add", systemImage: "plus")
             }
             .help("Add files or a link")
 
-            Button {
-                openWindow(id: "fonts")
-            } label: {
-                Label("Font Playground", systemImage: "textformat")
-            }
-            .help("Preview your fonts")
         }
 
         ToolbarSpacer(.fixed)
