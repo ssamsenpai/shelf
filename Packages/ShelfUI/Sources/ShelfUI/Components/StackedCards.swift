@@ -143,7 +143,7 @@ public struct StackedCards: View {
                     shape.strokeBorder(borderColor, lineWidth: borderWidth)
                 }
                 .frame(width: width, height: side)
-                .shelfShadow(lifted: true)
+                .shelfShadow(lifted: true, strength: 1.6)
         }
     }
 

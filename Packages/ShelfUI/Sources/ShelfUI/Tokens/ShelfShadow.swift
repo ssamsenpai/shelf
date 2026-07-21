@@ -10,12 +10,14 @@ public enum ShelfShadow {
 
 public extension View {
     /// Applies the soft shadow token. `lifted` is false in the resting state so the
-    /// shadow can animate in rather than sit under every surface.
-    func shelfShadow(lifted: Bool = true) -> some View {
+    /// shadow can animate in rather than sit under every surface. `strength`
+    /// scales the one token for surfaces that carry real depth, like the
+    /// collection card stacks, without inventing a second shadow.
+    func shelfShadow(lifted: Bool = true, strength: CGFloat = 1) -> some View {
         shadow(
-            color: lifted ? ShelfShadow.color : .clear,
-            radius: lifted ? ShelfShadow.radius : 0,
-            y: lifted ? ShelfShadow.y : 0
+            color: lifted ? .black.opacity(0.08 * strength) : .clear,
+            radius: lifted ? ShelfShadow.radius * strength : 0,
+            y: lifted ? ShelfShadow.y * strength : 0
         )
     }
 }
