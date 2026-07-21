@@ -41,6 +41,13 @@ struct ShelfApp: App {
             }
         }
 
+        Window("Font Playground", id: "fonts") {
+            FontPlayground()
+                .tint(.shelfAccent)
+        }
+        .defaultSize(width: 640, height: 480)
+        .modelContainer(for: [ShelfCategory.self, Asset.self])
+
         Settings {
             SettingsView()
                 .tint(.shelfAccent)

@@ -246,6 +246,9 @@ private struct CategorySidebarRow: View {
         .contextMenu {
             Button("Rename") { app.renamingCategoryID = category.id }
             Button("Change Icon...") { app.iconPickerCategoryID = category.id }
+            Button("Export Moodboard...") {
+                Task { await MoodboardExporter.export(category) }
+            }
             Divider()
             Button("Delete", role: .destructive) { actions.delete(category) }
         }
