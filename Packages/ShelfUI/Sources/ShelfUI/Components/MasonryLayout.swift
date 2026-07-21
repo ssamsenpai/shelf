@@ -17,11 +17,23 @@ public struct MasonryLayout: Layout {
         max(2, Int((width + spacing) / (columnWidth + spacing)))
     }
 
-    private struct Placement {
+    fileprivate struct Placement {
         var column: Int
         var y: CGFloat
         var height: CGFloat
     }
+
+    /// The solution computed in sizeThatFits, reused by placeSubviews so each
+    /// pass measures every subview once instead of twice.
+    public struct Cache {
+        fileprivate var width: CGFloat = -1
+        fileprivate var count: Int = -1
+        fileprivate var placements: [Placement] = []
+        fileprivate var columnWidth: CGFloat = 0
+        fileprivate var height: CGFloat = 0
+    }
+
+    public func makeCache(subviews: Subviews) -> Cache { Cache() }
 
     private func solve(
         width: CGFloat, subviews: Subviews
@@ -48,24 +60,36 @@ public struct MasonryLayout: Layout {
         return (placements, colWidth, max(total, 0))
     }
 
+    private func refresh(_ cache: inout Cache, width: CGFloat, subviews: Subviews) {
+        guard cache.width != width || cache.count != subviews.count else { return }
+        let solved = solve(width: width, subviews: subviews)
+        cache = Cache(
+            width: width,
+            count: subviews.count,
+            placements: solved.placements,
+            columnWidth: solved.columnWidth,
+            height: solved.height
+        )
+    }
+
     public func sizeThatFits(
-        proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+        proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache
     ) -> CGSize {
         let width = proposal.width ?? columnWidth * 2 + spacing
-        let solved = solve(width: width, subviews: subviews)
-        return CGSize(width: width, height: solved.height)
+        refresh(&cache, width: width, subviews: subviews)
+        return CGSize(width: width, height: cache.height)
     }
 
     public func placeSubviews(
-        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache
     ) {
-        let solved = solve(width: bounds.width, subviews: subviews)
+        refresh(&cache, width: bounds.width, subviews: subviews)
 
-        for (index, placement) in solved.placements.enumerated() {
-            let x = bounds.minX + CGFloat(placement.column) * (solved.columnWidth + spacing)
+        for (index, placement) in cache.placements.enumerated() where index < subviews.count {
+            let x = bounds.minX + CGFloat(placement.column) * (cache.columnWidth + spacing)
             subviews[index].place(
                 at: CGPoint(x: x, y: bounds.minY + placement.y),
-                proposal: ProposedViewSize(width: solved.columnWidth, height: placement.height)
+                proposal: ProposedViewSize(width: cache.columnWidth, height: placement.height)
             )
         }
     }

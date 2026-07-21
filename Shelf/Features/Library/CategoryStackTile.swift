@@ -74,12 +74,12 @@ struct CategoryStackTile: View {
         var images: [Image?] = []
 
         for asset in newestAssets {
-            let data = await ThumbnailCache.thumbnailData(id: asset.id, bookmark: asset.bookmark)
-            if let data, let nsImage = NSImage(data: data) {
-                images.append(Image(nsImage: nsImage))
-            } else {
-                images.append(nil)
-            }
+            let decoded = await ThumbnailStore.thumbnail(
+                id: asset.id,
+                revision: asset.thumbnailRevision,
+                bookmark: asset.bookmark
+            )
+            images.append(decoded.map { Image(nsImage: $0.image) })
         }
         return images
     }

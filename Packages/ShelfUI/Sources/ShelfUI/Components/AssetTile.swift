@@ -89,6 +89,7 @@ public struct AssetTile: View {
         )
         .onHover { hovering = $0 }
         .shelfAnimation(Motion.smooth, value: hovering)
+        .shelfAnimation(Motion.snappy, value: thumbnail == nil)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(name), \(kindTitle)")
     }

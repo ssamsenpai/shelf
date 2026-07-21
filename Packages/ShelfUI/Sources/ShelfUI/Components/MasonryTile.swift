@@ -71,6 +71,8 @@ public struct MasonryTile: View {
         }
         .onHover { hovering = $0 }
         .shelfAnimation(Motion.smooth, value: hovering)
+        // The preview fades in when it lands instead of popping.
+        .shelfAnimation(Motion.snappy, value: thumbnail == nil)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(name), \(kindTitle)")
     }

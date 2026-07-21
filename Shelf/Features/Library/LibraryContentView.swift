@@ -93,6 +93,10 @@ struct LibraryContentView: View {
             }
         }
         .background(Color.shelfContent)
+        // Page and view switches crossfade instead of snapping. The springs are
+        // short, so it reads as smooth rather than as animation.
+        .shelfAnimation(Motion.snappy, value: app.viewMode)
+        .shelfAnimation(Motion.snappy, value: app.selection)
         // The system's Liquid Glass edge treatment, not a hand rolled blur. The
         // switcher rides in the safe area bar, which is what makes the soft edge
         // render beneath it: an overlay would leave the bottom edge uninsetted and
