@@ -5,6 +5,10 @@ import ShelfUI
 /// The collection's palette as one continuous full width bar, segments sized
 /// equally, most common color first. Hovering a segment reveals its hex on the
 /// color itself, clicking copies it.
+///
+/// Hover feedback is opacity only, on views that are always present: nothing is
+/// inserted, removed, or resized on hover, so the bar never shifts and never
+/// animates layout while the pointer moves across it.
 struct CollectionPalette: View {
     let category: ShelfCategory
 
@@ -17,18 +21,25 @@ struct CollectionPalette: View {
         if !colors.isEmpty {
             HStack(spacing: 2) {
                 ForEach(colors, id: \.self) { hex in
-                    segment(hex, isFirst: hex == colors.first, isLast: hex == colors.last)
+                    segment(hex)
                 }
             }
             .frame(height: 44)
             .frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle.shelf(Radius.medium))
-            .shelfAnimation(Motion.snappy, value: hoveredHex)
+            .onHover { inside in
+                if !inside { hoveredHex = nil }
+            }
+            // One reset task for the whole bar, not one per segment.
+            .task(id: copiedHex) {
+                guard copiedHex != nil else { return }
+                try? await Task.sleep(for: .seconds(2))
+                copiedHex = nil
+            }
         }
     }
 
-    private func segment(_ hex: String, isFirst: Bool, isLast: Bool) -> some View {
-        let color = Color(hex: hex) ?? .clear
+    private func segment(_ hex: String) -> some View {
         let isHovered = hoveredHex == hex
         let showsCopied = copiedHex == hex
 
@@ -39,29 +50,32 @@ struct CollectionPalette: View {
             copiedHex = hex
         } label: {
             Rectangle()
-                .fill(color)
+                .fill(Color(hex: hex) ?? .clear)
                 .overlay {
-                    if isHovered || showsCopied {
-                        Label(
-                            showsCopied ? "Copied" : hex,
-                            systemImage: showsCopied ? "checkmark" : "doc.on.doc"
-                        )
-                        .font(.caption2.monospaced().weight(.medium))
-                        .foregroundStyle(idealTextColor(for: hex))
-                        .labelStyle(.titleAndIcon)
-                        .transition(.opacity)
+                    // Both labels exist permanently. Only their opacity moves.
+                    ZStack {
+                        Text(hex)
+                            .opacity(isHovered && !showsCopied ? 1 : 0)
+                        Label("Copied", systemImage: "checkmark")
+                            .opacity(showsCopied ? 1 : 0)
                     }
+                    .font(.caption2.monospaced().weight(.medium))
+                    .foregroundStyle(idealTextColor(for: hex))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .animation(Motion.crossFade, value: isHovered)
+                    .animation(Motion.crossFade, value: showsCopied)
                 }
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .onHover { hoveredHex = $0 ? hex : nil }
-        .help("Copy \(hex)")
-        .task(id: copiedHex) {
-            guard copiedHex != nil else { return }
-            try? await Task.sleep(for: .seconds(2))
-            copiedHex = nil
+        .onHover { inside in
+            // Only ever set, never clear, per segment: clearing happens when the
+            // pointer leaves the whole bar. Crossing the gaps between segments
+            // therefore cannot flicker.
+            if inside, hoveredHex != hex { hoveredHex = hex }
         }
+        .help("Copy \(hex)")
     }
 
     /// Black or white, whichever survives on the swatch.
