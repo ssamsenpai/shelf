@@ -114,6 +114,14 @@ struct InspectorPane: View {
                     }
                 }
 
+                if !asset.originalPath.isEmpty {
+                    section("Location") {
+                        PathBreadcrumb(path: asset.originalPath) {
+                            actions.revealInFinder(asset)
+                        }
+                    }
+                }
+
                 section("Note") {
                     NoteEditor(asset: asset, context: context)
                 }
@@ -274,6 +282,45 @@ private struct DetectedTags: View {
                 .help("Search for \(label)")
             }
         }
+    }
+}
+
+/// The file's location as a breadcrumb. Clicking it reveals the original in
+/// Finder. Wraps rather than truncating, so deep paths stay readable.
+private struct PathBreadcrumb: View {
+    let path: String
+    let onReveal: () -> Void
+
+    private var components: [String] {
+        // Home relative reads shorter and says just as much.
+        let display = path.replacingOccurrences(
+            of: FileManager.default.homeDirectoryForCurrentUser.path,
+            with: ""
+        )
+        return display.split(separator: "/").map(String.init)
+    }
+
+    var body: some View {
+        Button(action: onReveal) {
+            FlowLayout(spacing: Spacing.xs) {
+                ForEach(Array(components.enumerated()), id: \.offset) { index, part in
+                    HStack(spacing: Spacing.xs) {
+                        if index > 0 {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 7, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        Text(part)
+                            .font(.caption)
+                            .foregroundStyle(index == components.count - 1 ? .primary : .secondary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .help("Reveal in Finder")
     }
 }
 
