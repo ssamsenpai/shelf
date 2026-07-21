@@ -101,6 +101,12 @@ struct InspectorPane: View {
                     .menuStyle(.borderlessButton)
                 }
 
+                if !asset.visionLabels.isEmpty {
+                    section("Detected") {
+                        DetectedTags(labels: asset.visionLabels)
+                    }
+                }
+
                 section("Note") {
                     NoteEditor(asset: asset, context: context)
                 }
@@ -212,9 +218,6 @@ struct InspectorPane: View {
             if !asset.isLink, let domain = asset.linkDomain {
                 row("Source", domain)
             }
-            if !asset.visionLabels.isEmpty {
-                row("Contents", asset.visionLabels.prefix(4).joined(separator: ", "))
-            }
             row("Added", asset.addedAt.formatted(date: .abbreviated, time: .shortened))
             if let modified = asset.contentModifiedAt {
                 row("Modified", modified.formatted(date: .abbreviated, time: .shortened))
@@ -244,6 +247,28 @@ struct InspectorPane: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             content()
+        }
+    }
+}
+
+/// What the on device classifier saw, as tappable chips. Tapping one searches
+/// for it, so the tags double as navigation.
+private struct DetectedTags: View {
+    let labels: [String]
+
+    @Environment(AppState.self) private var app
+
+    var body: some View {
+        FlowLayout(spacing: Spacing.xs) {
+            ForEach(labels.prefix(8), id: \.self) { label in
+                Button {
+                    app.searchText = label
+                } label: {
+                    TagChip(text: label)
+                }
+                .buttonStyle(.plain)
+                .help("Search for \(label)")
+            }
         }
     }
 }
