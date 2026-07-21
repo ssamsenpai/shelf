@@ -46,6 +46,7 @@ struct LibraryToolbar: ToolbarContent {
         }
 
         ToolbarSpacer(.flexible)
+        ToolbarSpacer(.fixed)
 
         ToolbarItem {
             Button {
@@ -60,9 +61,9 @@ struct LibraryToolbar: ToolbarContent {
 
         ToolbarItemGroup {
             Menu {
-                Button("Add Files...") { app.requestImport() }
-                Button("Add Dev Project...") { app.filePickerRequest = .projects }
-                Button("Add Link...") { app.isPresentingAddLink = true }
+                Button("Add Files") { app.requestImport() }
+                Button("Add Dev Project") { app.filePickerRequest = .projects }
+                Button("Add Link") { app.isPresentingAddLink = true }
             } label: {
                 Label("Add", systemImage: "plus")
             }

@@ -167,6 +167,13 @@ final class AppState {
             return true
         }
 
+        // A color name finds everything whose palette contains that color.
+        if let colorName = Self.matchedColorName(query) {
+            if asset.dominantColors.contains(where: { Self.names(forHex: $0).contains(colorName) }) {
+                return true
+            }
+        }
+
         // A hex query searches by color: anything whose extracted palette comes
         // near it matches, not just exact bucket hits.
         if let target = Self.rgb(from: query) {
@@ -207,6 +214,70 @@ final class AppState {
             }
         }
         return false
+    }
+
+    private static let colorAliases: [String: String] = [
+        "grey": "gray", "violet": "purple", "magenta": "pink", "crimson": "red",
+        "maroon": "red", "navy": "blue", "aqua": "cyan", "teal": "cyan",
+        "turquoise": "cyan", "lime": "green", "beige": "brown", "tan": "brown",
+        "gold": "yellow"
+    ]
+
+    private static let colorWords: Set<String> = [
+        "red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink",
+        "brown", "black", "white", "gray"
+    ]
+
+    /// The canonical color the query names, or nil when it is not a color word.
+    private static func matchedColorName(_ query: String) -> String? {
+        let canonical = colorAliases[query] ?? query
+        return colorWords.contains(canonical) ? canonical : nil
+    }
+
+    /// Classifies a hex into human color names through hue, saturation, and
+    /// brightness. Dark warm hues also count as brown, since that is what people
+    /// call them.
+    private static func names(forHex hex: String) -> Set<String> {
+        guard let (r, g, b) = rgb(from: hex) else { return [] }
+        let rf = Double(r) / 255, gf = Double(g) / 255, bf = Double(b) / 255
+
+        let maxV = max(rf, gf, bf)
+        let minV = min(rf, gf, bf)
+        let delta = maxV - minV
+        let brightness = maxV
+        let saturation = maxV == 0 ? 0 : delta / maxV
+
+        if brightness < 0.16 { return ["black"] }
+        if saturation < 0.14 { return brightness > 0.82 ? ["white"] : ["gray"] }
+
+        var hue = 0.0
+        if delta > 0 {
+            if maxV == rf {
+                hue = 60 * ((gf - bf) / delta).truncatingRemainder(dividingBy: 6)
+            } else if maxV == gf {
+                hue = 60 * ((bf - rf) / delta + 2)
+            } else {
+                hue = 60 * ((rf - gf) / delta + 4)
+            }
+            if hue < 0 { hue += 360 }
+        }
+
+        var names = Set<String>()
+        switch hue {
+        case ..<15, 345...: names.insert("red")
+        case 15..<45: names.insert("orange")
+        case 45..<70: names.insert("yellow")
+        case 70..<165: names.insert("green")
+        case 165..<200: names.insert("cyan")
+        case 200..<256: names.insert("blue")
+        case 256..<290: names.insert("purple")
+        default: names.insert("pink")
+        }
+
+        if hue < 70 || hue >= 345, brightness < 0.6, saturation > 0.25 {
+            names.insert("brown")
+        }
+        return names
     }
 
     /// Parses #RRGGBB or RRGGBB. Nil for anything that is not a color.
