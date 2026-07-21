@@ -47,14 +47,18 @@ struct LibraryToolbar: ToolbarContent {
 
         ToolbarSpacer(.flexible)
 
-        ToolbarItemGroup {
+        ToolbarItem {
             Button {
                 app.newCategoryRequested = true
             } label: {
                 Label("New Collection", systemImage: "folder.badge.plus")
             }
             .help("New collection")
+        }
 
+        ToolbarSpacer(.fixed)
+
+        ToolbarItemGroup {
             Menu {
                 Button("Add Files...") { app.requestImport() }
                 Button("Add Dev Project...") { app.filePickerRequest = .projects }
@@ -72,7 +76,8 @@ struct LibraryToolbar: ToolbarContent {
         // offers no control over its width.
         ToolbarItem {
             SearchField(text: $app.searchText, prompt: "Search", bare: true)
-                .frame(width: 170)
+                .frame(width: 190)
+                .padding(.horizontal, Spacing.s)
         }
 
         ToolbarSpacer(.fixed)
