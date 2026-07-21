@@ -85,7 +85,9 @@ struct LibraryContentView: View {
                             CategoryFolderGrid(categories: browseCategories, actions: actions)
                         }
 
-                        if !isSearching, let category = currentCategory {
+                        // The palette describes the collection itself, so it
+                        // stays put while search filters the files below it.
+                        if let category = currentCategory {
                             CollectionPalette(category: category)
                         }
 
