@@ -36,6 +36,11 @@ final class ShelfCategory {
                 counts[hex, default: 0] += 1
             }
         }
-        return counts.sorted { $0.value > $1.value }.prefix(limit).map(\.key)
+        // Ties break on the hex itself: dictionary order is randomized, so
+        // without this, equal count colors swap places between renders.
+        return counts
+            .sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }
+            .prefix(limit)
+            .map(\.key)
     }
 }
