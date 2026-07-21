@@ -38,8 +38,14 @@ struct LibraryContentView: View {
         return app.arrange(scopedAssets)
     }
 
-    /// Categories lead the browse views so the user can open one visually.
+    private var isSearching: Bool {
+        !app.searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    /// Categories lead the browse views so the user can open one visually. Never
+    /// during a search, where only results should be on screen.
     private var showsCategoryGrid: Bool {
+        guard !isSearching else { return false }
         if case .allItems = app.selection { return !categories.isEmpty }
         return false
     }
@@ -48,7 +54,13 @@ struct LibraryContentView: View {
         @Bindable var app = app
 
         return Group {
-            if assets.isEmpty && !showsCategoryGrid {
+            if isSearching && assets.isEmpty {
+                EmptyState(
+                    symbol: "magnifyingglass",
+                    title: "No results",
+                    message: "Nothing matches \"\(app.searchText)\". Try a different word."
+                )
+            } else if assets.isEmpty && !showsCategoryGrid {
                 emptyState
             } else if app.viewMode == .canvas {
                 AssetCanvasView(assets: assets, actions: actions)
@@ -74,17 +86,6 @@ struct LibraryContentView: View {
                                 }
                                 AssetGridView(assets: assets, actions: actions)
                             }
-                        } else {
-                            EmptyState(
-                                symbol: "square.dashed",
-                                title: "No files yet",
-                                message: "Open a collection or add items to fill your library.",
-                                actionTitle: "Add Files",
-                                secondaryActionTitle: "Add Link",
-                                action: { app.requestImport() },
-                                secondaryAction: { app.isPresentingAddLink = true }
-                            )
-                            .frame(minHeight: 260)
                         }
                     }
                     .padding(Spacing.xl)

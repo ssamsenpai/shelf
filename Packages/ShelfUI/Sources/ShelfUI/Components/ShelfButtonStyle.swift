@@ -59,17 +59,22 @@ public struct ShelfPrimaryButtonStyle: ButtonStyle {
                 .foregroundStyle(.white)
                 .padding(.horizontal, Spacing.m)
                 .frame(height: 30)
-                .background(fill, in: .shelf(Radius.small))
+                .background(ShelfGradient.primary, in: .shelf(Radius.small))
+                .overlay {
+                    // Hover lifts the gradient, a press settles it.
+                    RoundedRectangle.shelf(Radius.small)
+                        .fill(overlayTone)
+                }
+                .opacity(isEnabled ? 1 : 0.45)
                 .contentShape(RoundedRectangle.shelf(Radius.small))
                 .onHover { hovering = $0 }
                 .shelfAnimation(Motion.snappy, value: hovering)
         }
 
-        private var fill: Color {
-            guard isEnabled else { return .shelfAccent.opacity(0.4) }
-            if configuration.isPressed { return .shelfAccent.opacity(0.82) }
-            if hovering { return .shelfAccent.opacity(0.92) }
-            return .shelfAccent
+        private var overlayTone: Color {
+            if configuration.isPressed { return .black.opacity(0.14) }
+            if hovering { return .white.opacity(0.14) }
+            return .clear
         }
     }
 }

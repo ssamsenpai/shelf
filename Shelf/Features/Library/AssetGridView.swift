@@ -8,19 +8,18 @@ struct AssetGridView: View {
 
     @Environment(AppState.self) private var app
 
-    private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: app.gridSize, maximum: app.gridSize * 1.5), spacing: Spacing.l)]
-    }
-
     var body: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: Spacing.l) {
+        // Equal width columns, heights follow each preview's own ratio.
+        MasonryLayout(columnWidth: app.gridSize, spacing: Spacing.l) {
             ForEach(assets) { asset in
                 ThumbnailProvider(asset: asset) { loaded in
-                    AssetTile(
+                    MasonryTile(
                         name: asset.displayName,
                         kindTitle: asset.kind.title,
                         symbol: asset.kind.symbol,
                         thumbnail: loaded?.image,
+                        aspectRatio: tileRatio(asset: asset, loaded: loaded),
+                        showsTransparency: loaded?.hasTransparency ?? false,
                         isSelected: app.selectedAssetIDs.contains(asset.id),
                         onOpen: { actions.revealInFinder(asset) }
                     )
@@ -34,6 +33,16 @@ struct AssetGridView: View {
                 }
             }
         }
+    }
+
+    /// The preview's true ratio, clamped so one panorama or endless screenshot
+    /// cannot dominate a column. Previewless assets get a calm square.
+    private func tileRatio(asset: Asset, loaded: LoadedThumbnail?) -> CGFloat {
+        let stored: CGFloat? = asset.pixelWidth > 0 && asset.pixelHeight > 0
+            ? CGFloat(asset.pixelWidth) / CGFloat(asset.pixelHeight)
+            : nil
+        let ratio = loaded?.aspectRatio ?? stored ?? 1
+        return min(max(ratio, 0.45), 2.6)
     }
 
     /// Command click extends the selection, a plain click replaces it.

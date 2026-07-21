@@ -23,14 +23,9 @@ public extension Color {
             : NSColor.white.withAlphaComponent(0.95)
     })
 
-    /// Label and icon of the selected sidebar row. Slightly lighter in dark mode,
-    /// where the exact light mode blue loses contrast against the material.
-    static let shelfSidebarActive = Color(nsColor: NSColor(name: nil) { appearance in
-        let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-        return isDark
-            ? NSColor(srgbRed: 0.25, green: 0.62, blue: 1.0, alpha: 1)
-            : NSColor(srgbRed: 0.0, green: 0.447, blue: 0.969, alpha: 1)
-    })
+    /// Label and icon of the selected sidebar row. The brand green, deliberately
+    /// identical in light and dark.
+    static let shelfSidebarActive = Color(.sRGB, red: 0.157, green: 0.667, blue: 0.271)
 
     /// Sidebar selection fill. A soft white wash rather than a solid accent block,
     /// so the accent tinted label stays legible on top. Carries more opacity in
@@ -39,4 +34,18 @@ public extension Color {
         let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
         return NSColor.white.withAlphaComponent(isDark ? 0.14 : 0.62)
     })
+}
+
+
+/// The primary action gradient, 28AA45 at the bottom rising to 64F465. One look
+/// for both appearances. Fills only: labels on top of it stay white.
+public enum ShelfGradient {
+    public static let bottom = Color(.sRGB, red: 0.157, green: 0.667, blue: 0.271)
+    public static let top = Color(.sRGB, red: 0.392, green: 0.957, blue: 0.396)
+
+    public static let primary = LinearGradient(
+        colors: [bottom, top],
+        startPoint: .bottom,
+        endPoint: .top
+    )
 }

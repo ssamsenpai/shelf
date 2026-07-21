@@ -45,11 +45,36 @@ struct AssetThumbnail: View {
 struct LoadedThumbnail {
     let image: Image
     let pixelSize: CGSize
+    /// True when the preview actually uses its alpha channel, checked on real
+    /// pixels. Every cached thumbnail is PNG, so the format alone proves nothing.
+    let hasTransparency: Bool
 
     var aspectRatio: CGFloat? {
         guard pixelSize.width > 0, pixelSize.height > 0 else { return nil }
         return pixelSize.width / pixelSize.height
     }
+}
+
+/// Samples a small render of the image and reports whether any pixel is
+/// meaningfully transparent.
+func detectTransparency(in nsImage: NSImage) -> Bool {
+    let side = 32
+    guard let context = CGContext(
+        data: nil, width: side, height: side,
+        bitsPerComponent: 8, bytesPerRow: side * 4,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    ), let cg = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil)
+    else { return false }
+
+    context.draw(cg, in: CGRect(x: 0, y: 0, width: side, height: side))
+    guard let data = context.data else { return false }
+
+    let pixels = data.bindMemory(to: UInt8.self, capacity: side * side * 4)
+    for index in stride(from: 3, to: side * side * 4, by: 4) where pixels[index] < 250 {
+        return true
+    }
+    return false
 }
 
 /// A small holder that hands the loaded thumbnail to a builder, so tiles and rows
@@ -73,7 +98,11 @@ struct ThumbnailProvider<Content: View>: View {
                     CGSize(width: $0.pixelsWide, height: $0.pixelsHigh)
                 } ?? nsImage.size
 
-                loaded = LoadedThumbnail(image: Image(nsImage: nsImage), pixelSize: pixels)
+                loaded = LoadedThumbnail(
+                    image: Image(nsImage: nsImage),
+                    pixelSize: pixels,
+                    hasTransparency: detectTransparency(in: nsImage)
+                )
             }
     }
 }
