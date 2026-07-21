@@ -4,14 +4,16 @@ import ShelfUI
 /// The window toolbar. macOS 26 renders toolbar items on glass and merges
 /// neighbours into clusters already, so nothing here applies glass of its own.
 /// `ToolbarSpacer` is what separates one cluster from the next.
+///
+/// The builder allows at most ten entries, so sort and the size slider share one
+/// group. Fixed spacers guard the separations that must survive narrow widths,
+/// the one flexible spacer pushes search and the inspector to the trailing edge.
 struct LibraryToolbar: ToolbarContent {
     @Environment(AppState.self) private var app
 
     var body: some ToolbarContent {
         @Bindable var app = app
 
-        // The view mode switcher lives in the floating control at the bottom, so
-        // the toolbar does not duplicate it.
         ToolbarItemGroup {
             Menu {
                 Picker("Sort By", selection: $app.sortField) {
@@ -35,17 +37,14 @@ struct LibraryToolbar: ToolbarContent {
             // Quiet chrome: the window tint would otherwise paint this accent.
             .tint(Color.secondary)
             .help("Sort items")
-        }
 
-        if app.viewMode != .list {
-            ToolbarItem {
+            if app.viewMode != .list {
                 Slider(value: $app.gridSize, in: 96...220)
                     .frame(width: 90)
                     .help("Preview size")
             }
         }
 
-        ToolbarSpacer(.flexible)
         ToolbarSpacer(.fixed)
 
         ToolbarItem {
@@ -68,10 +67,9 @@ struct LibraryToolbar: ToolbarContent {
                 Label("Add", systemImage: "plus")
             }
             .help("Add files or a link")
-
         }
 
-        ToolbarSpacer(.fixed)
+        ToolbarSpacer(.flexible)
 
         // A compact field rather than .searchable, whose macOS toolbar version
         // offers no control over its width.
