@@ -8,3 +8,4 @@ Packages/*/.build/
 Shelf.app
 site/node_modules/
 site/.next/
+build/
