@@ -96,10 +96,12 @@ public struct MasonryLayout: Layout {
 }
 
 /// The classic transparency checkerboard, for previews of images that have an
-/// alpha channel. Two quiet grays, identical in both appearances so transparency
-/// always reads the same way.
+/// alpha channel. Quiet grays that follow the appearance, so the pattern reads
+/// as a surface in dark mode instead of a bright hole.
 public struct CheckerboardView: View {
     private let square: CGFloat
+
+    @Environment(\.colorScheme) private var colorScheme
 
     public init(square: CGFloat = 16) {
         self.square = square
@@ -107,8 +109,9 @@ public struct CheckerboardView: View {
 
     public var body: some View {
         Canvas { context, size in
-            let light = Color(.sRGB, white: 0.97, opacity: 1)
-            let dark = Color(.sRGB, white: 0.92, opacity: 1)
+            let isDark = colorScheme == .dark
+            let light = Color(.sRGB, white: isDark ? 0.16 : 0.97, opacity: 1)
+            let dark = Color(.sRGB, white: isDark ? 0.22 : 0.92, opacity: 1)
 
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(light))
 
