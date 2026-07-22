@@ -119,21 +119,61 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 64px;
   text-align: center;
   padding-bottom: 24px;
   min-height: 0;
 }
 
-.frame {
+.stage {
+  position: relative;
   width: min(880px, 100%);
   flex: 0 1 auto;
   min-height: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
   aspect-ratio: 16 / 10;
-  border-radius: 16px;
+  border-radius: 26px;
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+/* The Apple style hairline: a one pixel stroke that fades from a lit top edge,
+   drawn inside the frame. */
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.05)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* The app icon sits over the bottom edge of the frame, like a Dock icon
+   presenting the app. */
+.appicon {
+  position: absolute;
+  bottom: -52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 148px;
+  height: 148px;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.28));
 }
 
 .frame video {
@@ -195,7 +235,9 @@ body {
   filter: brightness(1.06);
 }
 
-.hint {
-  font-size: 13px;
-  color: var(--text-tertiary);
+.mini {
+  height: 1.25em;
+  width: auto;
+  vertical-align: -0.28em;
+  margin: 0 1px;
 }

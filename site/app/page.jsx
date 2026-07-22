@@ -48,16 +48,23 @@ export default function Home() {
       </header>
 
       <main className="hero">
-        <div className="frame">
-          <video src="/demo.mp4" poster="/poster.png" autoPlay muted loop playsInline />
+        <div className="stage">
+          <div className="frame">
+            <video src="/demo.mp4" poster="/poster.png" autoPlay muted loop playsInline />
+          </div>
+          <img className="appicon" src="/icon-large.png" alt="" />
         </div>
 
         <div className="copy">
           <h1 className="title">Shelf</h1>
           <p className="tagline">Your creative library, on your Mac.</p>
           <p className="sub">
-            Images, fonts, links, palettes, and dev projects in one place.
-            Everything stays on your machine, and your files are never copied.
+            Images <img className="mini" src="/photos.png" alt="" />, fonts,
+            links <img className="mini" src="/rainbow.png" alt="" />, palettes,
+            and dev projects in one place. Everything stays on your
+            machine <img className="mini" src="/device.png" alt="" />, and your
+            files <img className="mini" src="/folder.png" alt="" /> are never
+            copied.
           </p>
           <div className="actions">
             <a
@@ -66,7 +73,6 @@ export default function Home() {
             >
               Download for macOS
             </a>
-            <span className="hint">Free and open source. macOS 26 or later.</span>
           </div>
         </div>
       </main>
