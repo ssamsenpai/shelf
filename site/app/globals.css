@@ -1,0 +1,201 @@
+/* Shelf landing. Same design language as the app: SF, one green accent,
+   soft shadow, tonal layering, nothing ornamental. */
+
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --text-secondary: rgba(26, 26, 26, 0.6);
+  --text-tertiary: rgba(26, 26, 26, 0.4);
+  --well: rgba(0, 0, 0, 0.045);
+  --accent: #28aa45;
+  --accent-top: #32bd51;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --bg: #101012;
+  --surface: #1a1a1d;
+  --text: #f2f2f2;
+  --text-secondary: rgba(242, 242, 242, 0.6);
+  --text-tertiary: rgba(242, 242, 242, 0.38);
+  --well: rgba(255, 255, 255, 0.07);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* Header */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.wordmark img {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav a,
+.nav button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav a:hover,
+.nav button:hover {
+  background: var(--well);
+  color: var(--text);
+}
+
+.nav svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+/* Hero */
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  text-align: center;
+  padding-bottom: 24px;
+  min-height: 0;
+}
+
+.frame {
+  width: min(880px, 100%);
+  flex: 0 1 auto;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: clamp(44px, 6vw, 68px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.tagline {
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.sub {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 560px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  background: linear-gradient(to top, var(--accent), var(--accent-top));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: filter 0.15s ease;
+}
+
+.button:hover {
+  filter: brightness(1.06);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
