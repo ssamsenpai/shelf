@@ -64,7 +64,7 @@ struct QuickShelfView: View {
                 }
             }
         }
-        .frame(width: 620)
+        .frame(width: 680)
         .scaleEffect(appeared ? 1 : 0.97, anchor: .top)
         .opacity(appeared ? 1 : 0)
         .shelfAnimation(Motion.smooth, value: appeared)
@@ -99,15 +99,18 @@ struct QuickShelfView: View {
 
             TextField("Search Shelf", text: $query)
                 .textFieldStyle(.plain)
-                .font(.title2)
+                .font(.title)
                 .focused($fieldFocused)
                 .onSubmit { copySelectedAndDismiss() }
                 .onKeyPress(.downArrow) { move(1) }
                 .onKeyPress(.upArrow) { move(-1) }
         }
-        .padding(.horizontal, Spacing.l)
-        .frame(height: 56)
+        .padding(.horizontal, Spacing.xl)
+        .frame(height: 64)
         .glassEffect(.regular, in: .capsule)
+        // Extra depth so the panel separates from whatever busy content sits
+        // behind it.
+        .shelfShadow(lifted: true, strength: 2.4)
     }
 
     private var resultsList: some View {
@@ -118,6 +121,7 @@ struct QuickShelfView: View {
         }
         .padding(Spacing.s)
         .glassEffect(.regular, in: .rect(cornerRadius: Radius.large))
+        .shelfShadow(lifted: true, strength: 2.4)
     }
 
     private func row(_ asset: Asset, isSelected: Bool) -> some View {

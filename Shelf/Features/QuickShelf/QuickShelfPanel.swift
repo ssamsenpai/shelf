@@ -15,7 +15,7 @@ final class QuickShelfController {
     weak var appState: AppState?
     private var resignObserver: (any NSObjectProtocol)?
 
-    private let panelSize = NSSize(width: 680, height: 480)
+    private let panelSize = NSSize(width: 760, height: 500)
 
     func install() {
         guard hotKey == nil else { return }
