@@ -42,6 +42,7 @@ enum AssetPasteboard {
 /// renders on Liquid Glass and animates in like Spotlight.
 struct QuickShelfView: View {
     let onDismiss: () -> Void
+    let onOpen: (Asset) -> Void
 
     @State private var query = ""
     @State private var results: [Asset] = []
@@ -51,7 +52,7 @@ struct QuickShelfView: View {
     @FocusState private var fieldFocused: Bool
 
     private let engine = AssetSearchEngine()
-    private let resultLimit = 7
+    private let resultLimit = 4
 
     var body: some View {
         GlassEffectContainer(spacing: Spacing.s) {
@@ -195,10 +196,10 @@ struct QuickShelfView: View {
         return .handled
     }
 
+    /// Return opens the item in Shelf itself. Copying stays on the rows.
     private func copySelectedAndDismiss() {
         guard results.indices.contains(selectedIndex) else { return }
-        AssetPasteboard.copy(results[selectedIndex])
-        onDismiss()
+        onOpen(results[selectedIndex])
     }
 
     /// Drags the real file out, so the receiving app gets the asset itself.

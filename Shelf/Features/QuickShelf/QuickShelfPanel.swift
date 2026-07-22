@@ -10,6 +10,9 @@ final class QuickShelfController {
 
     private var panel: NSPanel?
     private var hotKey: GlobalHotKey?
+    /// The main window's state, attached at launch so Return can land the
+    /// selection in the app.
+    weak var appState: AppState?
     private var resignObserver: (any NSObjectProtocol)?
 
     private let panelSize = NSSize(width: 680, height: 480)
@@ -36,9 +39,10 @@ final class QuickShelfController {
         self.panel = panel
 
         // Fresh content each summon: state resets and the appear animation runs.
-        let host = NSHostingView(rootView: QuickShelfView { [weak self] in
-            self?.hide()
-        })
+        let host = NSHostingView(rootView: QuickShelfView(
+            onDismiss: { [weak self] in self?.hide() },
+            onOpen: { [weak self] asset in self?.open(asset) }
+        ))
         host.frame = NSRect(origin: .zero, size: panelSize)
         panel.contentView = host
 
@@ -63,6 +67,24 @@ final class QuickShelfController {
                 panel.orderOut(nil)
             }
         })
+    }
+
+    /// Return in the panel: reveal the item in the app itself.
+    private func open(_ asset: Asset) {
+        hide()
+
+        if let category = asset.category {
+            appState?.selection = .category(category.id)
+        } else {
+            appState?.selection = .allItems
+        }
+        appState?.selectedAssetIDs = [asset.id]
+        appState?.inspectorPresented = true
+
+        NSApp.activate(ignoringOtherApps: true)
+        if let window = NSApp.windows.first(where: { !($0 is NSPanel) && $0.canBecomeMain }) {
+            window.makeKeyAndOrderFront(nil)
+        }
     }
 
     // MARK: Setup
@@ -93,7 +115,7 @@ final class QuickShelfController {
         return panel
     }
 
-    /// Upper third of the screen the pointer is on, like Spotlight.
+    /// Centered on the screen the pointer is on.
     private func position(_ panel: NSPanel) {
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { $0.frame.contains(mouse) }
@@ -102,7 +124,7 @@ final class QuickShelfController {
 
         let origin = NSPoint(
             x: frame.midX - panelSize.width / 2,
-            y: frame.minY + frame.height * 0.68 - panelSize.height / 2
+            y: frame.midY - panelSize.height / 2
         )
         panel.setFrameOrigin(origin)
     }
