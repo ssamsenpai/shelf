@@ -10,6 +10,9 @@ struct ShelfApp: App {
         // Previews are on unless the user turns them off. Each link is fetched
         // once and rendered from cache afterwards, so the app stays offline.
         UserDefaults.standard.register(defaults: [LinkPreviewService.settingKey: true])
+
+        // Quick Shelf: Option Space from anywhere.
+        QuickShelfController.shared.install()
     }
 
     var body: some Scene {
@@ -22,7 +25,7 @@ struct ShelfApp: App {
                 .tint(.shelfAccent)
         }
         .defaultSize(width: 1180, height: 760)
-        .modelContainer(for: [ShelfCategory.self, Asset.self])
+        .modelContainer(Store.container)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Collection") { app.newCategoryRequested = true }

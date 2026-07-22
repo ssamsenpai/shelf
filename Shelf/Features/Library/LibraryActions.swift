@@ -340,16 +340,7 @@ struct LibraryActions {
     /// Copies the file itself, plus the image where there is one, so pasting works
     /// in Finder and in an editor alike.
     func copy(_ asset: Asset) {
-        handingOff(asset) { url in
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-
-            var items: [any NSPasteboardWriting] = [url as NSURL]
-            if let image = NSImage(contentsOf: url) {
-                items.append(image)
-            }
-            pasteboard.writeObjects(items)
-        }
+        AssetPasteboard.copy(asset)
     }
 
     /// Hands a referenced file to another process. Security scoped access has to be
