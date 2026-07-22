@@ -50,6 +50,7 @@ final class QuickShelfController {
         panel.alphaValue = 0
         panel.orderFrontRegardless()
         panel.makeKey()
+        panel.makeFirstResponder(host)
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.16

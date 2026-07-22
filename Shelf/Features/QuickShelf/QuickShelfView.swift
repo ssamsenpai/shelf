@@ -71,8 +71,16 @@ struct QuickShelfView: View {
         .shelfAnimation(Motion.snappy, value: results.count)
         .onAppear {
             appeared = true
-            fieldFocused = true
             refresh()
+            // The panel becomes key a beat after the view appears. Focus set
+            // before that is a no-op, so ask again once the window is ready.
+            fieldFocused = true
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(60))
+                fieldFocused = true
+                try? await Task.sleep(for: .milliseconds(120))
+                fieldFocused = true
+            }
         }
         .onChange(of: query) { _, _ in
             selectedIndex = 0
