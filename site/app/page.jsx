@@ -60,11 +60,11 @@ export default function Home() {
           <p className="tagline">Your creative library, on your Mac.</p>
           <p className="sub">
             Images <img className="mini" src="/photos.png" alt="" />, fonts,
-            links <img className="mini" src="/rainbow.png" alt="" />, palettes,
+            links <img className="mini mini-big" src="/rainbow.png" alt="" />, palettes,
             and dev projects in one place. Everything stays on your
             machine <img className="mini" src="/device.png" alt="" />, and your
-            files <img className="mini" src="/folder.png" alt="" /> are never
-            copied.
+            files <img className="mini mini-small" src="/folder.png" alt="" /> are never
+            duplicated.
           </p>
           <div className="actions">
             <a

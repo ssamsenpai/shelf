@@ -241,3 +241,13 @@ body {
   vertical-align: -0.28em;
   margin: 0 1px;
 }
+
+.mini-small {
+  height: 1.05em;
+  vertical-align: -0.18em;
+}
+
+.mini-big {
+  height: 1.45em;
+  vertical-align: -0.38em;
+}
