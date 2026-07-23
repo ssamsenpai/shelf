@@ -79,6 +79,33 @@ enum LinkPreviewService {
         return .done(Preview(title: title, imageData: imageData))
     }
 
+    // MARK: Source icons
+
+    private static var sourceIconDirectory: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return base.appending(path: "Shelf/SourceIcons", directoryHint: .isDirectory)
+    }
+
+    /// The site's own mark, fetched once per domain and cached to disk. Returns
+    /// the cached bytes offline, and nothing when previews are off and no cache
+    /// exists yet.
+    static func sourceIcon(forHost host: String) async -> Data? {
+        let key = host.replacingOccurrences(of: "/", with: "-")
+        let cached = sourceIconDirectory.appending(path: "\(key).icon", directoryHint: .notDirectory)
+        if let data = try? Data(contentsOf: cached) { return data }
+
+        guard isEnabled else { return nil }
+
+        for candidate in ["https://\(host)/apple-touch-icon.png", "https://\(host)/favicon.ico"] {
+            guard let url = URL(string: candidate),
+                  let data = await fetchImage(at: url) else { continue }
+            try? FileManager.default.createDirectory(at: sourceIconDirectory, withIntermediateDirectories: true)
+            try? data.write(to: cached, options: .atomic)
+            return data
+        }
+        return nil
+    }
+
     // MARK: oEmbed
 
     /// Title and content thumbnail for platforms with an oEmbed endpoint.

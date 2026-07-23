@@ -95,6 +95,25 @@ final class Asset {
         return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
     }
 
+    /// Human name for the link's source: known platforms by name, otherwise the
+    /// domain with its ending trimmed and capitalized.
+    var sourceName: String? {
+        guard let domain = linkDomain else { return nil }
+
+        let known: [String: String] = [
+            "youtube.com": "YouTube", "youtu.be": "YouTube", "vimeo.com": "Vimeo",
+            "pinterest.com": "Pinterest", "dribbble.com": "Dribbble",
+            "behance.net": "Behance", "github.com": "GitHub", "figma.com": "Figma",
+            "x.com": "X", "twitter.com": "X", "instagram.com": "Instagram",
+            "medium.com": "Medium", "producthunt.com": "Product Hunt"
+        ]
+        if let name = known.first(where: { domain.hasSuffix($0.key) })?.value {
+            return name
+        }
+        let base = domain.split(separator: ".").first.map(String.init) ?? domain
+        return base.prefix(1).uppercased() + base.dropFirst()
+    }
+
     /// Derived from the stored path rather than a field, so it also applies to
     /// assets imported before extensions were shown.
     var fileExtension: String {

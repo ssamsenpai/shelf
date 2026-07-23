@@ -227,12 +227,30 @@ struct InspectorPane: View {
             if let size = asset.fileSizeText {
                 row("Size", size)
             }
-            if !asset.isLink, let domain = asset.linkDomain {
+            if asset.isLink, let source = asset.sourceName {
+                sourceRow(source, host: asset.linkURL?.host() ?? "")
+            } else if let domain = asset.linkDomain {
                 row("Source", domain)
             }
             row("Added", asset.addedAt.formatted(date: .abbreviated, time: .shortened))
             if let modified = asset.contentModifiedAt {
                 row("Modified", modified.formatted(date: .abbreviated, time: .shortened))
+            }
+        }
+    }
+
+    /// Source with the site's own favicon beside the name.
+    private func sourceRow(_ name: String, host: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Source")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: Spacing.m)
+            HStack(spacing: Spacing.xs) {
+                SourceIconView(host: host)
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
             }
         }
     }
@@ -350,6 +368,33 @@ private struct CopyButton: View {
             guard copied else { return }
             try? await Task.sleep(for: .seconds(3))
             copied = false
+        }
+    }
+}
+
+/// A site's favicon, cached per domain. Hidden entirely until it loads, so a
+/// site without one costs no empty space.
+private struct SourceIconView: View {
+    let host: String
+
+    @State private var icon: NSImage?
+
+    var body: some View {
+        Group {
+            if let icon {
+                Image(nsImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 14, height: 14)
+                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+            }
+        }
+        .task(id: host) {
+            guard !host.isEmpty,
+                  let data = await LinkPreviewService.sourceIcon(forHost: host),
+                  let image = NSImage(data: data)
+            else { return }
+            icon = image
         }
     }
 }
