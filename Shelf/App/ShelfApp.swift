@@ -4,12 +4,14 @@ import ShelfUI
 
 @main
 struct ShelfApp: App {
+    @NSApplicationDelegateAdaptor(ShelfAppDelegate.self) private var delegate
     @State private var app: AppState
 
     init() {
         let state = AppState()
         _app = State(initialValue: state)
         QuickShelfController.shared.appState = state
+        ShelfServicesProvider.shared.appState = state
 
         // Previews are on unless the user turns them off. Each link is fetched
         // once and rendered from cache afterwards, so the app stays offline.
