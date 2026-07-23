@@ -38,6 +38,13 @@ enum LinkPreviewService {
             return .done(Preview())
         }
 
+        // Video platforms gate their pages behind consent walls and scripts, so
+        // scraping shows a logo where the content should be. Their oEmbed APIs
+        // return the real title and thumbnail directly.
+        if let oembed = await oEmbedPreview(for: url) {
+            return .done(oembed)
+        }
+
         guard let html = await fetchHTML(at: url) else { return .unreachable }
 
         let title = metaContent(in: html, property: "og:title") ?? titleTag(in: html)
@@ -70,6 +77,57 @@ enum LinkPreviewService {
         }
 
         return .done(Preview(title: title, imageData: imageData))
+    }
+
+    // MARK: oEmbed
+
+    /// Title and content thumbnail for platforms with an oEmbed endpoint.
+    /// Nil means the URL is not one of them and the generic path should run.
+    private static func oEmbedPreview(for url: URL) async -> Preview? {
+        guard let host = url.host()?.lowercased() else { return nil }
+
+        var endpoint: URL?
+        if host.contains("youtube.com") || host == "youtu.be" {
+            endpoint = URL(string:
+                "https://www.youtube.com/oembed?format=json&url="
+                + (url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")
+            )
+        } else if host.contains("vimeo.com") {
+            endpoint = URL(string:
+                "https://vimeo.com/api/oembed.json?url="
+                + (url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")
+            )
+        }
+        guard let endpoint else { return nil }
+
+        struct OEmbed: Decodable {
+            let title: String?
+            let thumbnail_url: String?
+        }
+
+        var request = URLRequest(url: endpoint)
+        request.timeoutInterval = 10
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let decoded = try? JSONDecoder().decode(OEmbed.self, from: data)
+        else { return nil }
+
+        var imageData: Data?
+        if let thumbnail = decoded.thumbnail_url.flatMap(URL.init(string:)) {
+            // YouTube's maxres art exists for most videos and looks far better
+            // than the default thumb. Fall back when it does not.
+            if thumbnail.absoluteString.contains("ytimg.com"),
+               let upgraded = URL(string: thumbnail.absoluteString
+                   .replacingOccurrences(of: "hqdefault", with: "maxresdefault")),
+               let best = await fetchImage(at: upgraded) {
+                imageData = best
+            } else {
+                imageData = await fetchImage(at: thumbnail)
+            }
+        }
+
+        guard decoded.title != nil || imageData != nil else { return nil }
+        return Preview(title: decoded.title, imageData: imageData)
     }
 
     // MARK: Requests
