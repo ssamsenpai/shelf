@@ -72,9 +72,11 @@ There is no account, no backend, and no analytics. The only thing Shelf ever use
 
 ## 📦 Install
 
-Download the DMG from [Releases](../../releases), open it, and drag Shelf to Applications.
+1. Download the DMG from [Releases](../../releases) and drag Shelf into Applications.
+2. Open Shelf. macOS will say it cannot verify the app, because the build is not notarized yet. Choose **Done**, not Move to Trash.
+3. Open **System Settings**, go to **Privacy & Security**, scroll down to the message about Shelf, and click **Open Anyway**.
 
-The build is not notarized yet, so the first launch takes one extra step. macOS will say it could not verify the app; choose Done (not Move to Trash), then open **System Settings, Privacy & Security**, scroll down to the message about Shelf, and click **Open Anyway**. This happens once. If you prefer the Terminal:
+macOS only asks once. If you prefer the Terminal, this does the same thing:
 
 ```sh
 xattr -d com.apple.quarantine /Applications/Shelf.app
