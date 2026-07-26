@@ -77,22 +77,45 @@ public struct MasonryTile: View {
         .accessibilityLabel("\(name), \(kindTitle)")
     }
 
+    /// A tile never grows taller than this ratio allows, so one endless
+    /// screenshot cannot swallow a whole column.
+    private static let tallestRatio: CGFloat = 0.45
+
     @ViewBuilder
     private var preview: some View {
         if let thumbnail {
-            thumbnail
-                .resizable()
-                .aspectRatio(aspectRatio, contentMode: .fit)
+            if aspectRatio < Self.tallestRatio {
+                // Very tall content: show the top at its true scale and crop
+                // the rest, instead of squeezing the whole thing into the box.
+                GeometryReader { geo in
+                    thumbnail
+                        .resizable()
+                        .frame(width: geo.size.width, height: geo.size.width / max(aspectRatio, 0.01))
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+                        .clipped()
+                }
+                .aspectRatio(Self.tallestRatio, contentMode: .fit)
                 .background {
                     if showsTransparency {
                         CheckerboardView()
                     }
                 }
+            } else {
+                // The bitmap's own ratio, so the preview can never distort.
+                thumbnail
+                    .resizable()
+                    .scaledToFit()
+                    .background {
+                        if showsTransparency {
+                            CheckerboardView()
+                        }
+                    }
+            }
         } else {
             // No preview: a quiet well at a gentle ratio, never a broken glyph.
             RoundedRectangle.shelf(Radius.medium)
                 .fill(Color.shelfWell)
-                .aspectRatio(aspectRatio, contentMode: .fit)
+                .aspectRatio(min(max(aspectRatio, Self.tallestRatio), 2.6), contentMode: .fit)
                 .overlay {
                     TypeBadge(symbol: symbol, kindTitle: kindTitle)
                 }

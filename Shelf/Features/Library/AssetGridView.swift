@@ -34,14 +34,14 @@ struct AssetGridView: View {
         }
     }
 
-    /// The preview's true ratio, clamped so one panorama or endless screenshot
-    /// cannot dominate a column. Previewless assets get a calm square.
+    /// The preview's true ratio, preferring the decoded bitmap over stored
+    /// dimensions. Never clamped here: forcing a ratio onto the rendered image
+    /// is what stretches it. The tile itself crops extreme heights instead.
     private func tileRatio(asset: Asset, loaded: LoadedThumbnail?) -> CGFloat {
         let stored: CGFloat? = asset.pixelWidth > 0 && asset.pixelHeight > 0
             ? CGFloat(asset.pixelWidth) / CGFloat(asset.pixelHeight)
             : nil
-        let ratio = loaded?.aspectRatio ?? stored ?? 1
-        return min(max(ratio, 0.45), 2.6)
+        return loaded?.aspectRatio ?? stored ?? 1
     }
 
     /// Command click extends the selection, a plain click replaces it.
