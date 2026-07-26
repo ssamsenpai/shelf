@@ -9,6 +9,9 @@ jobs:
   build:
     # Shelf targets macOS 26, which needs the Xcode 26 toolchain.
     runs-on: macos-26
+    env:
+      # Secrets are not usable in step conditions directly, so surface presence here.
+      HAS_CERT: ${{ secrets.DEVELOPER_ID_P12 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -16,7 +19,7 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_26.app || sudo xcode-select -s /Applications/Xcode.app
 
       - name: Import signing certificate
-        if: ${{ secrets.DEVELOPER_ID_P12 != '' }}
+        if: ${{ env.HAS_CERT == 'true' }}
         env:
           P12_BASE64: ${{ secrets.DEVELOPER_ID_P12 }}
           P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
