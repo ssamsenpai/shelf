@@ -9,3 +9,7 @@ Shelf.app
 site/node_modules/
 site/.next/
 build/
+
+# Never commit extension signing material
+ChromeExtension.pem
+*.crx
