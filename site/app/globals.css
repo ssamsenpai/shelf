@@ -137,7 +137,7 @@ body {
 .frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   border-radius: 26px;
   overflow: hidden;
   background: var(--surface);
@@ -174,6 +174,84 @@ body {
   width: 148px;
   height: 148px;
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.28));
+}
+
+/* Motion. Everything enters once, quietly, and the icon keeps a slow float.
+   All of it stands down when the visitor prefers reduced motion. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .header {
+    animation: settle-down 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .stage {
+    animation: settle-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+  }
+
+  .appicon {
+    animation:
+      icon-pop 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) 0.55s backwards,
+      icon-float 6s ease-in-out 1.2s infinite;
+  }
+
+  .title {
+    animation: settle-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.25s backwards;
+  }
+
+  .tagline {
+    animation: settle-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s backwards;
+  }
+
+  .sub {
+    animation: settle-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.45s backwards;
+  }
+
+  .actions {
+    animation: settle-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s backwards;
+  }
+}
+
+@keyframes settle-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes settle-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes icon-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes icon-float {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-7px);
+  }
 }
 
 .frame video {
@@ -228,11 +306,36 @@ body {
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
 }
 
 .button:hover {
   filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(40, 170, 69, 0.35);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ghost:hover {
+  background: var(--well);
+  color: var(--text);
 }
 
 .mini {
