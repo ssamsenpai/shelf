@@ -5,7 +5,7 @@
 #   shasum -a 256 Shelf-x.y.z.dmg
 cask "shelf" do
   version "1.0.0"
-  sha256 "REPLACE_WITH_DMG_SHA256"
+  sha256 "4ebfeb27d4ec0e0b3359ba07171fd2bcc9772c8ac1760ea0e9efb38cb5c78009"
 
   url "https://github.com/ssamsenpai/shelf/releases/download/v#{version}/Shelf-#{version}.dmg"
   name "Shelf"
