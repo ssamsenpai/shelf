@@ -30,7 +30,7 @@ export default function Home() {
             </svg>
           </a>
           <a
-            href="https://x.com/YOUR_HANDLE"
+            href="https://x.com/OMekhaldi"
             aria-label="X"
             target="_blank"
             rel="noreferrer"
@@ -40,7 +40,7 @@ export default function Home() {
             </svg>
           </a>
           <a
-            href="https://www.linkedin.com/in/YOUR_HANDLE"
+            href="https://www.linkedin.com/in/oussama-mekhaldi/"
             aria-label="LinkedIn"
             target="_blank"
             rel="noreferrer"
