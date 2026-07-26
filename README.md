@@ -16,7 +16,11 @@ Images, fonts, videos, links, palettes, and dev projects in one place, and your 
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license">
 </p>
 
-![The Shelf library: a collection of design references in the masonry grid, with the color palette bar and the inspector open](docs/hero.png)
+![Touring the Shelf library: collections, the masonry grid, palettes, and the inspector](docs/tour.gif)
+
+<p align="center">
+  <a href="../../releases/download/v1.0.0/demo.mp4">Watch the full one minute demo</a>
+</p>
 
 ## 🗂️ Why this exists
 
@@ -28,31 +32,39 @@ Shelf takes the other path. When you add a file, Shelf stores a reference and bu
 
 ## 🧰 What it does
 
-**Collect anything.** Images (including SVG), fonts, videos, PDFs, design files, web links, and entire dev project folders. Drag things in, use the Add menu, or press paste.
+**Collect anything.** Images including SVG, fonts, videos, PDFs, design files, web links, and entire dev project folders. Everything renders as a real preview, not a generic icon, and transparent PNGs sit on a checkerboard in the inspector so you can tell them apart from white artwork.
 
 **Add from anywhere.**
-- Right click any image on the web and pick "Add to My Shelf" (Safari, Chrome, and Arc extensions included, with an in-app setup guide).
+- Drag files in, or use the Add menu for files, dev projects, and links.
+- Right click any image on the web and pick "Add to My Shelf". Extensions for Safari, Chrome, and Arc are included, with a setup walkthrough inside the app.
 - Right click any file in Finder and pick "Add to My Shelf".
 - Other apps can talk to Shelf through the `shelf://` URL scheme.
 
-![Right clicking an image on Pinterest, choosing Add to My Shelf, and the image appearing in the Shelf library](docs/clip.gif)
+![Right clicking an image on the web, choosing Add to My Shelf, and the image landing in the library](docs/webadd.gif)
+
+**Organize with collections.** Create them in one click, rename them inline like Finder folders, give each one its own SF Symbol icon and cover, and file items by dragging them onto a collection in the sidebar or the browse grid. Collections show as stacked card covers, and empty ones stay out of the browse view until they earn a card.
 
 **Find it again.**
-- Search matches names, file types, tags, and link domains.
-- On-device image classification (Apple Vision) labels your images so "poster" or "coffee" finds them, with synonym matching so close words work too.
-- Color search: type "red", a color name, or a hex code to find images by their dominant colors.
+- Search matches names, kinds, file formats ("png" finds every PNG, "jpg" also hits JPEG), tags, and link domains.
+- On-device image classification labels your images automatically, so "poster" or "coffee" finds them. Synonyms match too: "puppy" still finds an image labeled "dog". The detected tags show in the inspector, and clicking one searches for it.
+- Color search: type "red", any color name, or a hex code to find images by their dominant colors.
+- A search always covers the whole library, wherever you typed it.
 
-![Typing a color name in search and the grid filtering to matching images](docs/search.gif)
+**Work with color.** Every image gets its dominant colors extracted at import. Every collection distills them into a palette bar, and clicking a swatch copies the hex. Export any collection as a moodboard image, laid out on a clean grid with its palette attached.
 
-**Work with color.** Every collection gets a palette distilled from what is in it. Click a swatch to copy the hex. Export any collection as a moodboard image with its palette attached.
+**Quick Shelf.** Press Option-Space in any app for a Spotlight-style panel. Search your whole library, copy an item with one click, drag it straight into Figma or wherever you are working, or press Return to jump to it in the app.
 
-**Quick Shelf.** Press Option-Space in any app for a Spotlight-style panel. Search your library, copy an item, or drag it straight into whatever you are working on.
+![Quick Shelf summoned over Figma, finding a logo, and dragging it straight onto the canvas](docs/quickshelf.gif)
 
-**Links that look like their content.** Web links show their Open Graph image, and YouTube and Vimeo links show the video thumbnail and title.
+**Links that look like their content.** Web links show their Open Graph art, YouTube and Vimeo links show the video thumbnail and title, and the inspector shows the source with the site's own icon. Link previews are the one thing that touches the network, and each link is fetched once.
 
-**Dev projects too.** Add a project folder and Shelf records its languages and file count, and can open it in VS Code or in Claude Code in one click.
+**Dev projects too.** Add a project folder and Shelf records its languages, file count, and whether it is a git repo. Open it in VS Code or in Claude Code in one click.
 
-**Native playback.** Videos play in-app in an AVKit lightbox. Images expand to full resolution without a round trip through Preview.
+**Preview without leaving.** Click a thumbnail in the grid to expand it to full resolution in a lightbox. Videos play right there in a native AVKit player with Liquid Glass controls. Space gives you the system Quick Look, Return in the inspector opens the original, and Reveal in Finder is always one click away.
+
+**Details on hand.** The inspector shows kind, format, dimensions, size, dates, extracted colors, the collection, and the original's path as a clickable breadcrumb. Add your own tags and notes. Copy buttons confirm with a check for a moment, so you know it happened.
+
+**It behaves like a Mac app.** One window, real Liquid Glass from the system APIs, light and dark mode, multi-select with Command and Shift, context menus everywhere, keyboard navigation, and respect for Reduce Motion and Reduce Transparency.
 
 ## 🔒 Privacy
 
