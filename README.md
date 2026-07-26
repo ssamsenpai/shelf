@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="site/public/icon-large.png" width="110" alt="Shelf app icon">
+</p>
+
 <h1 align="center">Shelf</h1>
 
 <p align="center">
@@ -5,9 +9,16 @@ A native macOS library for your raw material.<br>
 Images, fonts, videos, links, palettes, and dev projects in one place, and your files are never duplicated.
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-26+-28AA45" alt="macOS 26 or later">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/dependencies-none-555555" alt="No dependencies">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license">
+</p>
+
 ![The Shelf library: a collection of design references in the masonry grid, with the color palette bar and the inspector open](docs/hero.png)
 
-## Why this exists
+## 🗂️ Why this exists
 
 If you design or build things, you collect things: screenshots of pricing pages, logos you liked, fonts you bought, icons, links you will "definitely need later". That pile ends up scattered across Downloads, the Desktop, browser bookmarks, and seventeen folders named `inspo`.
 
@@ -15,7 +26,7 @@ Apps that solve this usually do it by importing everything into their own librar
 
 Shelf takes the other path. When you add a file, Shelf stores a reference and builds a preview. The original never moves and is never copied. Rename your folders, keep your files on an external drive, organize them however you like. Shelf keeps up, and the library still renders from its preview cache even when the drive is unplugged.
 
-## What it does
+## 🧰 What it does
 
 **Collect anything.** Images (including SVG), fonts, videos, PDFs, design files, web links, and entire dev project folders. Drag things in, use the Add menu, or press paste.
 
@@ -24,10 +35,14 @@ Shelf takes the other path. When you add a file, Shelf stores a reference and bu
 - Right click any file in Finder and pick "Add to My Shelf".
 - Other apps can talk to Shelf through the `shelf://` URL scheme.
 
+![Right clicking an image on Pinterest, choosing Add to My Shelf, and the image appearing in the Shelf library](docs/clip.gif)
+
 **Find it again.**
 - Search matches names, file types, tags, and link domains.
 - On-device image classification (Apple Vision) labels your images so "poster" or "coffee" finds them, with synonym matching so close words work too.
 - Color search: type "red", a color name, or a hex code to find images by their dominant colors.
+
+![Typing a color name in search and the grid filtering to matching images](docs/search.gif)
 
 **Work with color.** Every collection gets a palette distilled from what is in it. Click a swatch to copy the hex. Export any collection as a moodboard image with its palette attached.
 
@@ -39,29 +54,29 @@ Shelf takes the other path. When you add a file, Shelf stores a reference and bu
 
 **Native playback.** Videos play in-app in an AVKit lightbox. Images expand to full resolution without a round trip through Preview.
 
-## Privacy
+## 🔒 Privacy
 
 There is no account, no backend, and no analytics. The only thing Shelf ever uses the network for is fetching link previews, and you can turn that off in Settings. Everything else, including image classification and semantic search, runs on device.
 
-## Install
+## 📦 Install
 
 Download the DMG from [Releases](../../releases), open it, and drag Shelf to Applications.
 
 Shelf requires **macOS 26 (Tahoe)** or later. It is built on the Liquid Glass APIs and SwiftData, so it does not run on earlier systems.
 
-## Build from source
+## 🛠️ Build from source
 
 You need Xcode 26 on macOS 26.
 
 ```sh
-git clone <this repo>
+git clone https://github.com/ssamsenpai/shelf.git
 cd shelf
 ./run.sh
 ```
 
 `run.sh` builds the app and launches it. Or open `Shelf.xcodeproj` and hit Run. There are no dependencies to install; the only package is `ShelfUI`, which lives in this repo.
 
-## How it is built
+## 🧱 How it is built
 
 - Swift and SwiftUI throughout, with SwiftData for the library. Zero third-party dependencies.
 - The design system is an isolated local package, `Packages/ShelfUI`: spacing, radius, motion, and shadow tokens plus the shared components. The app does not hard-code styling outside it.
@@ -70,12 +85,12 @@ cd shelf
 - Image labels come from the Vision framework, synonym expansion from NLEmbedding, and the global hotkey from Carbon, so none of it needs a network or special permissions.
 - The app is sandboxed.
 
-## Contributing
+## 🤝 Contributing
 
 Issues and pull requests are welcome. Keep changes small and focused, match the style of the surrounding code, and route any new UI through the ShelfUI tokens rather than ad-hoc values. `./run.sh` is the whole dev loop.
 
 If Shelf is useful to you, a star helps other people find it.
 
-## License
+## 📄 License
 
 [MIT](LICENSE)
