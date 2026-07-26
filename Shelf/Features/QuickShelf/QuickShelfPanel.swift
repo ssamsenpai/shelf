@@ -35,6 +35,9 @@ final class QuickShelfController {
     }
 
     func show() {
+        // The setup checklist watches this key to check its shortcut item off.
+        UserDefaults.standard.set(true, forKey: "didUseQuickShelf")
+
         let panel = self.panel ?? makePanel()
         self.panel = panel
 

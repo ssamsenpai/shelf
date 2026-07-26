@@ -44,6 +44,9 @@ struct ShelfApp: App {
                     .keyboardShortcut("i", modifiers: [.command, .option])
             }
             CommandGroup(after: .help) {
+                Button("Welcome to Shelf...") {
+                    app.isPresentingWelcome = true
+                }
                 Button("Set Up Browser Extension...") {
                     app.isPresentingExtensionOnboarding = true
                 }

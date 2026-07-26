@@ -82,6 +82,7 @@ final class AppState {
     }
 
     var filePickerRequest: FilePickerRequest?
+    var isPresentingWelcome: Bool = false
     var isPresentingExtensionOnboarding: Bool = false
     var isPresentingAddLink: Bool = false
     var isConfirmingRemoval: Bool = false

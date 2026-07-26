@@ -100,6 +100,9 @@ struct RootView: View {
         @Bindable var app = app
 
         return interacting
+            .sheet(isPresented: $app.isPresentingWelcome) {
+                WelcomeSheet(actions: actions)
+            }
             .sheet(isPresented: $app.isPresentingExtensionOnboarding) {
                 ExtensionOnboardingSheet()
             }
@@ -118,11 +121,11 @@ struct RootView: View {
                 }
             }
             .task {
-                // The extension walkthrough shows once, then lives in Help.
+                // The welcome flow shows once, then lives in Help.
                 let defaults = UserDefaults.standard
-                if !defaults.bool(forKey: "didShowExtensionOnboarding") {
-                    defaults.set(true, forKey: "didShowExtensionOnboarding")
-                    app.isPresentingExtensionOnboarding = true
+                if !defaults.bool(forKey: "didShowWelcome") {
+                    defaults.set(true, forKey: "didShowWelcome")
+                    app.isPresentingWelcome = true
                 }
 
                 actions.seedDefaultCategoriesIfNeeded()

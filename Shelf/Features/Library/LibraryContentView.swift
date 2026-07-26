@@ -90,6 +90,12 @@ struct LibraryContentView: View {
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: Spacing.xl) {
+                        // Setup nudges live on the home view only, never over
+                        // a collection or a search.
+                        if app.selection == .allItems && !isSearching {
+                            SetupChecklistCard(assetCount: allAssets.count)
+                        }
+
                         if showsCategoryGrid {
                             CategoryFolderGrid(categories: browseCategories, actions: actions)
                         }

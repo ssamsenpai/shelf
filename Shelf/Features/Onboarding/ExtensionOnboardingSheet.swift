@@ -79,6 +79,10 @@ struct ExtensionOnboardingSheet: View {
         }
         .padding(Spacing.xl)
         .frame(width: 460)
+        // The setup checklist watches this key to check its extension item off.
+        .onAppear {
+            UserDefaults.standard.set(true, forKey: "didOpenExtensionGuide")
+        }
         .fileImporter(
             isPresented: $pickingExportFolder,
             allowedContentTypes: [.folder]
