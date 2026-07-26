@@ -79,11 +79,6 @@ struct RootView: View {
                 actions.quickLook(first)
                 return .handled
             }
-            .onKeyPress(.return) {
-                guard let first = selectedAssets.first else { return .ignored }
-                actions.open(first)
-                return .handled
-            }
             .onKeyPress(.delete) {
                 guard !selectedAssets.isEmpty else { return .ignored }
                 app.isConfirmingRemoval = true
@@ -133,8 +128,16 @@ struct RootView: View {
                 actions.seedDefaultCategoriesIfNeeded()
                 actions.seedDevProjectsCategoryIfNeeded()
                 selectFirstAssetIfNeeded()
-                await actions.backfillLinkPreviews()
-                await actions.backfillVisionLabels()
+
+                // The backfills can wait. Launch belongs to first paint and the
+                // first wave of thumbnails; network and Vision run afterwards,
+                // below UI priority, so they never make the window stutter.
+                let actions = self.actions
+                Task(priority: .utility) {
+                    try? await Task.sleep(for: .seconds(2))
+                    await actions.backfillLinkPreviews()
+                    await actions.backfillVisionLabels()
+                }
             }
             .onChange(of: assets.count) { _, _ in
                 selectFirstAssetIfNeeded()
@@ -193,7 +196,7 @@ struct RootView: View {
     /// empty selection, so it never fights the user.
     private func selectFirstAssetIfNeeded() {
         guard app.selectedAssetIDs.isEmpty,
-              let first = assets.sorted(by: { $0.addedAt > $1.addedAt }).first
+              let first = assets.max(by: { $0.addedAt < $1.addedAt })
         else { return }
 
         app.selectedAssetIDs = [first.id]

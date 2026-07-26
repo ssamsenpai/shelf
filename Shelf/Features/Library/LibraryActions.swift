@@ -134,6 +134,9 @@ struct LibraryActions {
             }
             asset.visionLabels = await VisionTagger.labels(for: data)
             asset.visionScanned = true
+            // A breather between scans keeps a large backfill from pinning a
+            // core while the user is doing something else.
+            try? await Task.sleep(for: .milliseconds(40))
         }
         try? context.save()
     }

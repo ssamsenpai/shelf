@@ -20,13 +20,17 @@ struct LibraryContentView: View {
         return categories.first { $0.id == id }
     }
 
-    /// Assets for the current selection, before search and sort.
+    /// Assets for the current selection, before search and sort. A search always
+    /// looks at the whole library, wherever it was typed: results beat an empty
+    /// state, and the match may simply live in another collection.
     private var scopedAssets: [Asset] {
+        if isSearching { return allAssets }
+
         switch app.selection {
         case .allItems, .recent:
-            allAssets
+            return allAssets
         case .category(let id):
-            allAssets.filter { $0.category?.id == id }
+            return allAssets.filter { $0.category?.id == id }
         }
     }
 
@@ -59,22 +63,27 @@ struct LibraryContentView: View {
     var body: some View {
         @Bindable var app = app
 
+        // One filter and sort pass per update. The computed property would
+        // otherwise re-run the whole search matcher for every place below
+        // that mentions the list.
+        let arranged = assets
+
         return Group {
-            if isSearching && assets.isEmpty {
+            if isSearching && arranged.isEmpty {
                 EmptyState(
                     symbol: "magnifyingglass",
                     title: "No results",
                     message: "Nothing matches \"\(app.searchText)\". Try a different word."
                 )
-            } else if assets.isEmpty && !showsCategoryGrid {
+            } else if arranged.isEmpty && !showsCategoryGrid {
                 emptyState
             } else if app.viewMode == .canvas {
-                AssetCanvasView(assets: assets, actions: actions)
+                AssetCanvasView(assets: arranged, actions: actions)
             } else if app.viewMode == .list {
                 // List owns its own scrolling, so it is the root here rather than
                 // being nested inside a ScrollView where it would clip.
                 AssetListView(
-                    assets: assets,
+                    assets: arranged,
                     actions: actions,
                     categories: showsCategoryGrid ? browseCategories : []
                 )
@@ -91,12 +100,12 @@ struct LibraryContentView: View {
                             CollectionPalette(category: category)
                         }
 
-                        if !assets.isEmpty {
+                        if !arranged.isEmpty {
                             VStack(alignment: .leading, spacing: Spacing.m) {
                                 if showsCategoryGrid {
                                     sectionHeader("Files")
                                 }
-                                AssetGridView(assets: assets, actions: actions)
+                                AssetGridView(assets: arranged, actions: actions)
                             }
                         }
                     }

@@ -29,11 +29,21 @@ final class DecodedThumbnail: @unchecked Sendable {
 enum ThumbnailStore {
 
     // NSCache is documented thread safe and the stored object is immutable.
+    // The budget follows the machine: a smaller ceiling on 8 GB Macs keeps
+    // Shelf from crowding out whatever the user is actually working in.
     nonisolated(unsafe) private static let cache: NSCache<NSString, DecodedThumbnail> = {
         let cache = NSCache<NSString, DecodedThumbnail>()
-        cache.totalCostLimit = 192 * 1024 * 1024
+        let smallMachine = ProcessInfo.processInfo.physicalMemory <= 8 * 1024 * 1024 * 1024
+        cache.totalCostLimit = (smallMachine ? 96 : 192) * 1024 * 1024
         return cache
     }()
+
+    /// A large grid appearing at once would otherwise start every disk read,
+    /// QuickLook generation, and decode simultaneously. The gate turns that
+    /// thundering herd into a short queue sized to the machine.
+    private static let gate = AsyncGate(
+        limit: max(2, min(6, ProcessInfo.processInfo.activeProcessorCount / 2))
+    )
 
     /// Largest pixel edge kept in memory. Tiles and the inspector both render well
     /// below this. The disk cache keeps the full resolution for anything that
@@ -46,9 +56,17 @@ enum ThumbnailStore {
         let key = "\(id.uuidString)-\(revision)" as NSString
         if let hit = cache.object(forKey: key) { return hit }
 
-        guard let data = await ThumbnailCache.thumbnailData(id: id, bookmark: bookmark),
-              let decoded = decode(data)
-        else { return nil }
+        await gate.enter()
+        // Another task may have decoded this exact key while we waited.
+        if let hit = cache.object(forKey: key) {
+            await gate.leave()
+            return hit
+        }
+
+        let data = await ThumbnailCache.thumbnailData(id: id, bookmark: bookmark)
+        let decoded = data.flatMap(decode)
+        await gate.leave()
+        guard let decoded else { return nil }
 
         let cost = Int(decoded.pixelSize.width * decoded.pixelSize.height) * 4
         cache.setObject(decoded, forKey: key, cost: cost)
@@ -81,8 +99,9 @@ enum ThumbnailStore {
     }
 
     /// Samples a small render and reports whether any pixel is meaningfully
-    /// transparent. Every cached thumbnail is PNG, so the format proves nothing.
-    private nonisolated static func usesAlpha(_ image: CGImage) -> Bool {
+    /// transparent. The container format proves nothing, so pixels are checked.
+    /// ThumbnailCache also consults this to pick a disk format.
+    nonisolated static func usesAlpha(_ image: CGImage) -> Bool {
         switch image.alphaInfo {
         case .none, .noneSkipFirst, .noneSkipLast:
             return false
@@ -106,5 +125,33 @@ enum ThumbnailStore {
             return true
         }
         return false
+    }
+}
+
+/// A counting gate for async work. Up to `limit` tasks proceed at once, the rest
+/// wait their turn in order. Leaving hands the slot straight to the next waiter.
+actor AsyncGate {
+    private let limit: Int
+    private var active = 0
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(limit: Int) {
+        self.limit = limit
+    }
+
+    func enter() async {
+        if active < limit {
+            active += 1
+            return
+        }
+        await withCheckedContinuation { waiters.append($0) }
+    }
+
+    func leave() {
+        if waiters.isEmpty {
+            active -= 1
+        } else {
+            waiters.removeFirst().resume()
+        }
     }
 }

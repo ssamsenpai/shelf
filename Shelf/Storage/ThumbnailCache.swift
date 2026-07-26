@@ -111,14 +111,25 @@ enum ThumbnailCache {
         return pngData(from: image)
     }
 
+    /// PNG only when the pixels actually use transparency, JPEG otherwise. A
+    /// photo thumbnail stored as PNG costs several megabytes for nothing; as
+    /// JPEG it is a fraction of that, and reads and decodes that much faster.
+    /// The cache file keeps its name either way: ImageIO sniffs the bytes.
     private static func pngData(from image: CGImage?) -> Data? {
         guard let image else { return nil }
+
+        let transparent = ThumbnailStore.usesAlpha(image)
+        let type = transparent ? UTType.png : UTType.jpeg
+        let options = transparent
+            ? nil
+            : [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary
+
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(
-            data as CFMutableData, UTType.png.identifier as CFString, 1, nil
+            data as CFMutableData, type.identifier as CFString, 1, nil
         ) else { return nil }
 
-        CGImageDestinationAddImage(destination, image, nil)
+        CGImageDestinationAddImage(destination, image, options)
         guard CGImageDestinationFinalize(destination) else { return nil }
         return data as Data
     }
