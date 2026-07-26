@@ -28,13 +28,49 @@ fi
 
 echo "==> Creating DMG"
 STAGE="build/dmg-stage"
-rm -rf "$STAGE" && mkdir -p "$STAGE"
+rm -rf "$STAGE" && mkdir -p "$STAGE/.background"
 cp -R "$APP" "$STAGE/"
+cp packaging/dmg-background.png "$STAGE/.background/background.png"
 ln -s /Applications "$STAGE/Applications"
 
 DMG="build/Shelf-$VERSION.dmg"
-rm -f "$DMG"
-hdiutil create -volname "Shelf" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+RW="build/Shelf-rw.dmg"
+rm -f "$DMG" "$RW"
+
+# Build read-write first so Finder can lay the window out, then compress.
+hdiutil detach "/Volumes/Shelf" >/dev/null 2>&1 || true
+hdiutil create -volname "Shelf" -srcfolder "$STAGE" -ov -format UDRW "$RW" >/dev/null
+hdiutil attach "$RW" -readwrite -noverify -noautoopen >/dev/null
+
+# Window: no chrome, branded background, big icons either side of the arrow.
+osascript <<'OSA' >/dev/null || echo "==> Finder styling skipped (automation permission?)"
+tell application "Finder"
+  tell disk "Shelf"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {400, 200, 1060, 628}
+    set viewOptions to the icon view options of container window
+    set arrangement of viewOptions to not arranged
+    set icon size of viewOptions to 128
+    set text size of viewOptions to 13
+    set background picture of viewOptions to file ".background:background.png"
+    set position of item "Shelf.app" of container window to {165, 220}
+    set position of item "Applications" of container window to {495, 220}
+    close
+    open
+    update without registering applications
+    delay 1
+    close
+  end tell
+end tell
+OSA
+
+sync
+hdiutil detach "/Volumes/Shelf" >/dev/null
+hdiutil convert "$RW" -format UDZO -o "$DMG" >/dev/null
+rm -f "$RW"
 echo "==> $DMG"
 
 if [ -n "${NOTARY_APPLE_ID:-}" ] && [ -n "${SIGN_IDENTITY:-}" ]; then

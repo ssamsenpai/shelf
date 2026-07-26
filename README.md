@@ -74,6 +74,12 @@ There is no account, no backend, and no analytics. The only thing Shelf ever use
 
 Download the DMG from [Releases](../../releases), open it, and drag Shelf to Applications.
 
+The build is not notarized yet, so the first launch takes one extra step. macOS will say it could not verify the app; choose Done (not Move to Trash), then open **System Settings, Privacy & Security**, scroll down to the message about Shelf, and click **Open Anyway**. This happens once. If you prefer the Terminal:
+
+```sh
+xattr -d com.apple.quarantine /Applications/Shelf.app
+```
+
 Shelf requires **macOS 26 (Tahoe)** or later. It is built on the Liquid Glass APIs and SwiftData, so it does not run on earlier systems.
 
 ## 🛠️ Build from source
