@@ -2,9 +2,10 @@ import AppKit
 import SwiftUI
 
 public extension Color {
-    /// The one accent token. Defined in the package asset catalog so light and dark
-    /// are automatic. Everything else uses semantic system colors.
-    static let shelfAccent = Color("ShelfAccent", bundle: .module)
+    /// The one accent token: the accent the user chose in System Settings, so
+    /// Shelf matches every other well behaved Mac app. Everything else uses
+    /// semantic system colors.
+    static let shelfAccent = Color(nsColor: .controlAccentColor)
 
     /// Window and content surfaces. Named so no view reaches for AppKit directly.
     static let shelfWindow = Color(nsColor: .windowBackgroundColor)
@@ -23,9 +24,9 @@ public extension Color {
             : NSColor.white.withAlphaComponent(0.95)
     })
 
-    /// Label and icon of the selected sidebar row. The brand green, deliberately
-    /// identical in light and dark.
-    static let shelfSidebarActive = Color(.sRGB, red: 0.157, green: 0.667, blue: 0.271)
+    /// Label and icon of the selected sidebar row. The system accent, same as
+    /// everything else that highlights.
+    static let shelfSidebarActive = Color(nsColor: .controlAccentColor)
 
     /// Sidebar selection fill. A soft white wash rather than a solid accent block,
     /// so the accent tinted label stays legible on top. Carries more opacity in
@@ -37,12 +38,17 @@ public extension Color {
 }
 
 
-/// The primary action gradient. Two greens sitting close together, so the fill
-/// reads as a solid with a faint inner light rather than as a gradient. One look
-/// for both appearances. Fills only: labels on top of it stay white.
+/// The primary action gradient. The system accent with a faintly lightened top,
+/// sitting close enough together that the fill reads as a solid with an inner
+/// light rather than as a gradient. Follows the accent the user chose in System
+/// Settings. Fills only: labels on top of it stay white.
 public enum ShelfGradient {
-    public static let bottom = Color(.sRGB, red: 0.157, green: 0.667, blue: 0.271)
-    public static let top = Color(.sRGB, red: 0.196, green: 0.741, blue: 0.318)
+    public static let bottom = Color(nsColor: .controlAccentColor)
+
+    public static let top = Color(nsColor: NSColor(name: nil) { _ in
+        let accent = NSColor.controlAccentColor.usingColorSpace(.sRGB) ?? .controlAccentColor
+        return accent.blended(withFraction: 0.12, of: .white) ?? accent
+    })
 
     public static let primary = LinearGradient(
         colors: [bottom, top],
