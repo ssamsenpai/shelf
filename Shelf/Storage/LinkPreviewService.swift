@@ -180,9 +180,13 @@ enum LinkPreviewService {
               !data.isEmpty
         else { return nil }
 
-        // Guard against a page returning HTML where an image was advertised.
-        let type = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Type") ?? ""
-        guard type.hasPrefix("image/") else { return nil }
+        // The status matters as much as the type: YouTube answers a missing
+        // maxres thumbnail with 404 plus a real image/jpeg placeholder body,
+        // which would otherwise get cached as the art.
+        guard let http = response as? HTTPURLResponse,
+              (200...299).contains(http.statusCode),
+              http.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("image/") == true
+        else { return nil }
         return data
     }
 
